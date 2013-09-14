@@ -1,8 +1,8 @@
 OASISFormat: 0.3
 Name:        pcap
-Version:     0.3.3
+Version:     0.4
 Synopsis:    Pcap tools
-Authors:     Anil Madhavapeddy, Dave Scott
+Authors:     Anil Madhavapeddy, Dave Scott, Richard Mortier
 License:     ISC
 Plugins:     META (0.2)
 BuildTools:  ocamlbuild
@@ -19,7 +19,7 @@ Library pcap
   CompiledObject:     best
   Path:               lib
   Findlibname:        pcap-format
-  Modules:            Pcap
+  Modules:            Pcap, Ip, Tcp, Ethernet
   BuildDepends:       cstruct ( >= 0.5.0 ), cstruct.syntax
 
 Library mirage
