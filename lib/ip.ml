@@ -69,6 +69,37 @@ let get_ip4_offset buf = (get_ip4_flagoff buf) land 0x1fff
 let get_ip4_flags buf = (get_ip4_flagoff buf) lsr 13
 let is_df fs = (fs land 0x02 <> 0)
 let is_mf fs = (fs land 0x01 <> 0)
+
+type h = {
+  ver: int;
+  hlen: int;
+  tos: int;
+  len: int;
+  id: int;
+  flags: int;
+  offset: int;
+  ttl: int;
+  proto: int;
+  xsum: int;
+  src: int32;
+  dst: int32;
+}
+
+let h buf = 
+  { ver = get_ip4_ver buf;
+    hlen = get_ip4_hlen buf;
+    tos = get_ip4_tos buf;
+    len = get_ip4_len buf;
+    id = get_ip4_id buf;
+    flags = get_ip4_flags buf;
+    ttl = get_ip4_ttl buf;
+    offset = get_ip4_offset buf;
+    proto = get_ip4_proto buf;
+    xsum = get_ip4_xsum buf;
+    src = get_ip4_src buf;
+    dst = get_ip4_dst buf;
+  }
+
 let flags_to_string f = 
   sprintf "%s%s"
     (if is_df f then "DF" else "..")
@@ -76,27 +107,35 @@ let flags_to_string f =
 
 let ip_to_string = Cstruct.ipv4_to_string
 
-let to_str buf = 
-  sprintf "%s,%s,%d, %d, %s,[%s]"
-    (get_ip4_src buf |> ip_to_string)
-    (get_ip4_dst buf |> ip_to_string)
-    (get_ip4_proto buf)
-    (get_ip4_len buf)
-    (get_ip4_flags buf |> flags_to_string)
+let to_str h = 
+  let proto = match int_to_protocol h.proto with
+    | None -> sprintf "#%d" h.proto
+    | Some e -> protocol_to_string e
+  in
+  sprintf "%s,%s,%s, %d, %s,[%s]"
+    (ip_to_string h.src)
+    (ip_to_string h.dst)
+    proto
+    h.len
+    (flags_to_string h.flags)
     "OPTS-NOT-PARSED"
 
-let to_string buf = 
-  sprintf "ver:%d hlen:%d tos:%02x len:%d id:%d flags:%s offset:%d ttl:%d proto:%d xsum:%04x src:%s dst:%s opts:%s"
-    (get_ip4_ver buf)
-    (get_ip4_hlen buf)
-    (get_ip4_tos buf)
-    (get_ip4_len buf)
-    (get_ip4_id buf)
-    (get_ip4_flags buf |> flags_to_string)
-    (get_ip4_offset buf)
-    (get_ip4_ttl buf)
-    (get_ip4_proto buf)
-    (get_ip4_xsum buf)
-    (get_ip4_src buf |> ip_to_string)
-    (get_ip4_dst buf |> ip_to_string)
+let to_string h =
+  let proto = match int_to_protocol h.proto with
+    | None -> sprintf "#%d" h.proto
+    | Some e -> protocol_to_string e
+  in
+  sprintf "ver:%d hlen:%d tos:%02x len:%d id:%d flags:%s offset:%d ttl:%d proto:%s xsum:%04x src:%s dst:%s opts:%s"
+    h.ver
+    h.hlen
+    h.tos
+    h.len
+    h.id
+    (flags_to_string h.flags)
+    h.offset
+    h.ttl
+    proto 
+    h.xsum
+    (ip_to_string h.src)
+    (ip_to_string h.dst)
     "OPTS-NOT-PARSED"

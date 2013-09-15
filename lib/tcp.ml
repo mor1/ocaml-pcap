@@ -28,8 +28,32 @@ cstruct tcp4 {
   uint16_t urgent
 } as big_endian
 
+type h = {
+  srcpt: int;
+  dstpt: int;
+  seqno: int32;
+  ackno: int32;
+  flags: int;
+  offset: int;
+  window: int;
+  xsum: int;
+  urgent: int;
+}
+
 let get_tcp4_offset buf = ((get_tcp4_flagoff buf) land 0xf000) lsr 12
 let get_tcp4_flags buf = (get_tcp4_flagoff buf) land 0x003f
+
+let h buf = 
+  {  srcpt = get_tcp4_srcpt buf;
+     dstpt = get_tcp4_dstpt buf;
+     seqno = get_tcp4_seqno buf;
+     ackno = get_tcp4_ackno buf;
+     flags = get_tcp4_flags buf;
+     offset = get_tcp4_offset buf;
+     window = get_tcp4_window buf;
+     xsum = get_tcp4_xsum buf;
+     urgent = get_tcp4_urgent buf;
+  }
 
 let is_fin fs = fs land 0x01 <> 0
 let is_syn fs = fs land 0x02 <> 0
@@ -47,14 +71,12 @@ let flags_to_string flags =
     (if (is_ack flags) then "A" else ".")
     (if (is_urg flags) then "U" else ".")  
 
-let to_str buf = 
+let to_str h = 
   sprintf "%d,%d,%s"
-    (get_tcp4_srcpt buf) (get_tcp4_dstpt buf)
-    (get_tcp4_flags buf |> flags_to_string)
+    h.srcpt h.dstpt (flags_to_string h.flags)
 
-let to_string buf =
-  sprintf "src:%d dst:%d seq:%lu ack:%lu offset:%d flags:%s win:%d xsum:%04x urg:%d"
-    (get_tcp4_srcpt buf) (get_tcp4_dstpt buf)
-    (get_tcp4_seqno buf) (get_tcp4_ackno buf)
-    (get_tcp4_offset buf) (get_tcp4_flags buf |> flags_to_string)
-    (get_tcp4_window buf) (get_tcp4_xsum buf) (get_tcp4_urgent buf)
+let to_string h =
+  sprintf "src:%d dst:%d seq:%lu ack:%lu flags:%s offset:%d win:%d xsum:%04x urg:%d"
+    h.srcpt h.dstpt h.seqno h.ackno
+    (flags_to_string h.flags)
+    h.offset h.window h.xsum h.urgent

@@ -14,7 +14,11 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
+open Operators
 open Printf
+open Cstruct
+
+type bytes = Cstruct.t
 
 cenum ethertype {
   IP4 = 0x0800;
@@ -29,19 +33,34 @@ cstruct ethernet {
   uint16_t ethertype
 } as big_endian
 
-let mac_to_string buf =
-  let i n = Cstruct.get_uint8 buf n in
+type h = {
+  dst: bytes;
+  src: bytes;
+  ethertype: uint16;
+}
+
+let h buf = 
+  { dst = get_ethernet_dst buf;
+    src = get_ethernet_src buf;
+    ethertype = get_ethernet_ethertype buf;
+  }
+
+let mac_to_string mac =
+  let i n = get_uint8 mac n in
   sprintf "%.2x:%.2x:%.2x:%.2x:%.2x:%.2x"
     (i 0) (i 1) (i 2) (i 3) (i 4) (i 5)
+  
+let to_str h = 
+  let ethertype = match int_to_ethertype h.ethertype with
+    | None -> sprintf "#%d" h.ethertype
+    | Some e -> ethertype_to_string e
+  in
+  sprintf "%s,%s,%s" (mac_to_string h.src) (mac_to_string h.dst) ethertype
 
-let to_str buf = 
-  sprintf "%s,%s,%04x" 
-    (mac_to_string (get_ethernet_src buf))
-    (mac_to_string (get_ethernet_dst buf))
-    (get_ethernet_ethertype buf)
-
-let to_string buf = 
-  sprintf "src:%s dst:%s type:%04x" 
-    (mac_to_string (get_ethernet_src buf))
-    (mac_to_string (get_ethernet_dst buf))
-    (get_ethernet_ethertype buf)
+let to_string h = 
+  let ethertype = match int_to_ethertype h.ethertype with
+    | None -> "###"
+    | Some e -> ethertype_to_string e
+  in
+  sprintf "src:%s dst:%s type:%s" 
+    (mac_to_string h.src) (mac_to_string h.dst) ethertype

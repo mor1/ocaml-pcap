@@ -1,6 +1,7 @@
 (*
  * Copyright (c) 2012 Anil Madhavapeddy <anil@recoil.org>
  * Copyright (C) 2012 Citrix Systems Inc
+ * Copyright (C) 2013 Richard Mortier <mort@cantab.net>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,6 +15,8 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
+
+open Printf
 
 let major_version = 2
 
@@ -52,7 +55,6 @@ module Network = struct
     else None
 
 end
-
 
 module LE = struct
   let endian = Little
@@ -131,18 +133,80 @@ module type HDR = sig
   val set_pcap_packet_orig_len: Cstruct.t -> int32 -> unit
 end
 
-let magic_number = 0xa1b2c3d4l
+type fh = {
+  magic: int32;
+  endian: endian;
+  ver_major: int;
+  ver_minor: int;
+  timezone: int32;     (* GMT to local correction *)
+  sigfigs: int32;      (* accuracy of timestamps *)
+  snaplen: int32;      (* max length of captured packets, in octets *)
+  network: int32       (* data link type *)
+}
 
-let detect buf =
-  let le_magic = LE.get_pcap_header_magic_number buf in
-  let be_magic = BE.get_pcap_header_magic_number buf in
-  if le_magic = magic_number then Some (module LE: HDR)
-  else if be_magic = magic_number then Some (module BE: HDR)
-  else None
+let fh_to_str fh =
+  sprintf "%d.%d/%s, %lu, %lu, %lu, %lu"
+    fh.ver_major fh.ver_minor (string_of_endian fh.endian)
+    fh.timezone fh.sigfigs fh.snaplen, fh.network
 
-let packets h =
-  let module H = (val h : HDR) in
-  Cstruct.iter 
-    (fun buf -> Some (sizeof_pcap_packet + (Int32.to_int (H.get_pcap_packet_incl_len buf))))
-    (fun buf -> buf, (Cstruct.shift buf sizeof_pcap_packet))
+let fh_to_string fh = 
+  sprintf "magic:%.8lx endian:%s ver_major:%d ver_minor:%d timezone:%lu \
+           sigfigs:%lu snaplen:%lu lltype:%lu"
+    fh.magic (string_of_endian fh.endian) fh.ver_major fh.ver_minor fh.timezone
+    fh.sigfigs fh.snaplen fh.network
 
+type h = {
+  secs: int32;
+  usecs: int32;
+  caplen: int32;
+  len: int32;
+}
+
+let to_str h =
+  sprintf "%lu.%06lu %lu[%lu]" h.secs h.usecs h.caplen h.len
+
+let to_string h =
+  sprintf "secs:%lu usecs:%lu caplen:%lu len:%lu" h.secs h.usecs h.caplen h.len
+
+type t = PCAP of h * Packet.t
+
+let iter buf demuxf =
+  let magic_number = 0xa1b2c3d4l in
+  let pcap_hdr =
+    let le_magic = LE.get_pcap_header_magic_number buf in
+    let be_magic = BE.get_pcap_header_magic_number buf in
+    if le_magic = magic_number then Some (module LE: HDR)
+    else if be_magic = magic_number then Some (module BE: HDR)
+    else None
+  in
+  match pcap_hdr with
+    | None -> None
+    | Some h -> 
+      let module H = (val h : HDR) in
+      
+      let h buf = 
+        { secs = H.get_pcap_packet_ts_sec buf;
+          usecs = H.get_pcap_packet_ts_usec buf;
+          caplen = H.get_pcap_packet_incl_len buf;
+          len = H.get_pcap_packet_orig_len buf
+        }
+      in
+
+      let fh = 
+        { magic = H.get_pcap_header_magic_number buf;
+          endian = H.endian;
+          ver_major = H.get_pcap_header_version_major buf;
+          ver_minor = H.get_pcap_header_version_minor buf;
+          timezone = H.get_pcap_header_thiszone buf;
+          sigfigs = H.get_pcap_header_sigfigs buf;
+          snaplen = H.get_pcap_header_snaplen buf;
+          network = H.get_pcap_header_network buf;
+        }
+      in
+      let _, buf = Cstruct.split buf sizeof_pcap_header in
+      Some (
+        fh, Cstruct.iter 
+          (fun buf -> Some (sizeof_pcap_packet + (Int32.to_int (H.get_pcap_packet_incl_len buf))))
+          (fun buf -> PCAP(h buf, demuxf (Cstruct.shift buf sizeof_pcap_packet)))
+          buf
+      )
