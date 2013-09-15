@@ -22,8 +22,9 @@ open Operators
 open Pcap
 open Printf
 
+(*
 let print_packet p =
-  printf "ETH(%s)|" (Ethernet.to_string p);
+  printf "ETH(%s)|" (Ethernet.to_str p);
   let ethertype = Ethernet.(get_ethernet_ethertype p |> int_to_ethertype) in
   match ethertype with
     | Some Ethernet.IP4 -> (
@@ -38,32 +39,16 @@ let print_packet p =
           printf "TCP4(%s)|" (Tcp.to_string tcp);
           printf "%S\n" (Cstruct.to_string payload)
         )
+        | Some Ip.UDP -> (
+          let udp = Udp.h ip in
+          printf "UDP4(%s)|" (Udp.h_to_string udp)
+        )
         | Some proto -> printf "unknown ip proto %d\n" (Ip.protocol_to_int proto)
         | None -> printf "parse error\n"
     )
     | _ -> printf "unknown ethertype\n"
     
-let rec print_pcap_packet h (hdr,pkt) =
-  let module H = (val h: HDR) in
-  let open H in
-  printf "\n** %lu.%lu  bytes %lu (of %lu)\n" 
-    (get_pcap_packet_ts_sec hdr)
-    (get_pcap_packet_ts_usec hdr)
-    (get_pcap_packet_incl_len hdr)
-    (get_pcap_packet_orig_len hdr);
-  print_packet pkt
-  
-let print_pcap_header h buf =
-  let module H = (val h: HDR) in
-  let open H in
-  printf "pcap_header (len %d)\n" sizeof_pcap_header;
-  printf "endian: %s\n" (string_of_endian H.endian);
-  printf "version %d %d\n" 
-   (get_pcap_header_version_major buf) (get_pcap_header_version_minor buf);
-  printf "timezone shift %lu\n" (get_pcap_header_thiszone buf);
-  printf "timestamp accuracy %lu\n" (get_pcap_header_sigfigs buf);
-  printf "snaplen %lu\n" (get_pcap_header_snaplen buf);
-  printf "lltype %lx\n" (get_pcap_header_network buf)
+*)
 
 let parse filename =
   printf "filename: %s\n" filename;
@@ -72,20 +57,19 @@ let parse filename =
   let buf = Cstruct.of_bigarray buf in
   printf "total pcap file length %d\n" (Cstruct.len buf);
 
-  let header, body = Cstruct.split buf sizeof_pcap_header in
-  match Pcap.detect header with
-  | Some h ->
-    print_pcap_header h header;
-
-    let packets = Pcap.packets h body in
-
-    let num_packets = Cstruct.fold
-      (fun a packet -> print_pcap_packet h packet; (a+1)) 
-      packets 0
-    in
-    printf "num_packets %d\n" num_packets
-  | None ->
-    Printf.fprintf stderr "not a pcap file (failed to read magic number in header)\n%!"
+  let demuxf st buf = Packet.DATA(buf) in
+  match Pcap.iter buf (demuxf ()) with
+    | None -> 
+      fprintf stderr "not a pcap file (failed to read magic number in header)\n%!"
+    | Some (pcap_header, pcap_packets) -> 
+      let open Pcap in
+      printf "### %s\n%!" (fh_to_string pcap_header);
+      let num_packets = Cstruct.fold
+        (fun a (PCAP(h, p)) -> 
+          printf "%d: %s\n\t%s\n%!" a (to_string h) (Packet.to_string p); (a+1))
+        pcap_packets 0
+      in
+      printf "num_packets %d\n" num_packets
 
 let _ =
   let files = ref [] in
