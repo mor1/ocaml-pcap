@@ -57,8 +57,9 @@ let parse filename =
   let buf = Cstruct.of_bigarray buf in
   printf "total pcap file length %d\n" (Cstruct.len buf);
 
-  let demuxf st buf = Packet.DATA(buf) in
-  match Pcap.iter buf (demuxf ()) with
+  (* cheap'n'cheerful for now-- assume capture from an ethernet interface, and
+     stateless demux *)
+  match Pcap.iter buf (Demux.eth_demux ()) with
     | None -> 
       fprintf stderr "not a pcap file (failed to read magic number in header)\n%!"
     | Some (pcap_header, pcap_packets) -> 
