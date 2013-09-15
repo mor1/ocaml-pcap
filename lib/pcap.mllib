@@ -1,7 +1,10 @@
 # OASIS_START
-# DO NOT EDIT (digest: 3fb4483bc97479fc5ee99d5758f9e662)
+# DO NOT EDIT (digest: abc14ee25246bb1129d1d551291d90c7)
 Pcap
-Ip
-Tcp
 Ethernet
+Ip
+Udp
+Tcp
+Dhcp
+Packet
 # OASIS_STOP

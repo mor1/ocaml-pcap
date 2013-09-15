@@ -19,7 +19,7 @@ Library pcap
   CompiledObject:     best
   Path:               lib
   Findlibname:        pcap-format
-  Modules:            Pcap, Ip, Tcp, Ethernet
+  Modules:            Pcap, Ethernet, Ip, Udp, Tcp, Dhcp, Packet
   BuildDepends:       cstruct ( >= 0.5.0 ), cstruct.syntax
 
 Library mirage
