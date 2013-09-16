@@ -32,8 +32,9 @@ let udp4_demux st buf =
     match int_to_port p with
       | None -> data_demux st buf
       | Some p -> match p with
-          | BOOTPS | BOOTPC -> Dhcp.(DHCP(h buf, 
-                                          UNKNOWN (Cstruct.shift buf Dhcp.sizeof_dhcp4)))
+          | BOOTPS | BOOTPC
+            -> Dhcp4.(DHCP(h buf, 
+                           UNKNOWN (Cstruct.shift buf sizeof_dhcp4)))
           | _ -> data_demux st buf
   in
   UDP4(uh, payload uh.dstpt)

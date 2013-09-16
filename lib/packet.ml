@@ -23,7 +23,7 @@ type t =
   | TCP4  of Tcp4.h * t
   | UDP4  of Udp4.h * t
       
-  | DHCP of Dhcp.t
+  | DHCP of Dhcp4.t
 
   | DATA of Cstruct.t
   | ERROR of Cstruct.t
@@ -40,7 +40,7 @@ let to_str pkt =
       | UDP4 (h, p)  -> 
         let s = sprintf "%s|UDP4(%s)" str (Udp4.to_str h) in aux p s
 
-      | DHCP p -> sprintf "%s|%s" str (Dhcp.to_str p)
+      | DHCP p -> sprintf "%s|%s" str (Dhcp4.to_str p)
 
       | DATA bs -> sprintf "%s|DATA(%s)" str (buf_to_string "\n\t" bs)
       | ERROR bs -> sprintf "%s|ERR(%s)" str (buf_to_string "\n\t" bs)
@@ -59,7 +59,7 @@ let to_string pkt =
       | UDP4 (h, p)  -> 
         let s = sprintf "%s|UDP4(%s)" str (Udp4.to_string h) in aux p s
 
-      | DHCP p -> sprintf "%s|%s" str (Dhcp.to_string p)
+      | DHCP p -> sprintf "%s|%s" str (Dhcp4.to_string p)
 
       | DATA bs -> sprintf "%s|DATA(%s)" str (buf_to_string "\n\t" bs)
       | ERROR bs -> sprintf "%s|ERR(%s)" str (buf_to_string "\n\t" bs)
