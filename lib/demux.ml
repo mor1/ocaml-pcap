@@ -15,8 +15,9 @@
  *)
 
 (** break the cycle: Packet depends on various formats (Ethernet, etc); but
-    demux results in a Packet.t element, hence can't include demux functions in
-    the format modules themselves. *)
+    demux results in a Packet.t element, hence can't include demux functions
+    in the format modules themselves. could put them in Packet but seems
+    cleaner to break them out. *)
 
 open Packet
 
@@ -25,7 +26,17 @@ let data_demux _ buf = DATA buf
 let udp4_demux st buf = 
   let open Udp4 in
   let uh = h buf in
-  UDP4(uh, data_demux st (Cstruct.shift buf sizeof_udp4))
+  let buf = Cstruct.shift buf sizeof_udp4 in
+  let payload p =
+    let open Ip4 in
+    match int_to_port p with
+      | None -> data_demux st buf
+      | Some p -> match p with
+          | BOOTPS | BOOTPC -> Dhcp.(DHCP(h buf, 
+                                          UNKNOWN (Cstruct.shift buf Dhcp.sizeof_dhcp4)))
+          | _ -> data_demux st buf
+  in
+  UDP4(uh, payload uh.dstpt)
     
 let tcp4_demux st buf = 
   let open Tcp4 in
