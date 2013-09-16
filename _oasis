@@ -42,6 +42,15 @@ Executable print
   Install:            false
   BuildDepends:       lwt, lwt.unix, pcap-format
 
+Executable flows
+  Build$:             flag(unix)
+  CompiledObject:     best
+  Path:               flows
+  MainIs:             flows.ml
+  Custom:             true
+  Install:            false
+  BuildDepends:       lwt, lwt.unix, pcap-format
+
 Executable test
   Path:               lib_test
   MainIs:             test.ml
