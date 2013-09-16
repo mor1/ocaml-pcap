@@ -45,7 +45,7 @@ let to_str pkt =
       | DHCP p -> sprintf "%s|%s" str (Dhcp4.to_str p)
       | ARP p -> sprintf "%s|%s" str (Arp.to_str p)
 
-      | DATA bs -> sprintf "%s|DATA(%s)" str (buf_to_string "\n\t" bs)
+      | DATA bs -> sprintf "%s|DATA(.)" str 
       | ERROR bs -> sprintf "%s|ERR(%s)" str (buf_to_string "\n\t" bs)
       | DROP -> sprintf "%s|." str
   in
