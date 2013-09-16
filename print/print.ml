@@ -31,7 +31,7 @@ let parse filename =
 
   (* cheap'n'cheerful for now-- assume capture from an ethernet interface, and
      stateless demux *)
-  match Pcap.iter buf (Demux.eth_demux ()) with
+  match Pcap.iter buf (Demux.(eth_demux () ethertype_demux)) with
     | None -> 
       fprintf stderr "not a pcap file (failed to read magic number in header)\n%!"
     | Some (pcap_header, pcap_packets) -> 
