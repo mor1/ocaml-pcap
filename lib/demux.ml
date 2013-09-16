@@ -21,11 +21,13 @@
 
 open Packet
 
-(** demuxf: 'st -> 'proto_demuxf -> buf *)
+(** stop_demuxf: buf -> Packet.t *)
 
 let drop_demux _ = DROP
 
 let data_demux buf = DATA buf
+
+(** demuxf: 'st -> 'proto_demuxf -> buf -> Packet.t *)
 
 let udp4_demux st port_demux buf = 
   let open Udp4 in
