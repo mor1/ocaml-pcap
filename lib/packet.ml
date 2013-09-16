@@ -28,6 +28,7 @@ type t =
 
   | DATA of Cstruct.t
   | ERROR of Cstruct.t
+  | DROP
 
 let to_str pkt =
   let rec aux pkt str =  
@@ -46,6 +47,7 @@ let to_str pkt =
 
       | DATA bs -> sprintf "%s|DATA(%s)" str (buf_to_string "\n\t" bs)
       | ERROR bs -> sprintf "%s|ERR(%s)" str (buf_to_string "\n\t" bs)
+      | DROP -> sprintf "%s|." str
   in
   aux pkt ""
 
@@ -66,6 +68,7 @@ let to_string pkt =
 
       | DATA bs -> sprintf "%s|DATA(%s)" str (buf_to_string "\n\t" bs)
       | ERROR bs -> sprintf "%s|ERR(%s)" str (buf_to_string "\n\t" bs)
+      | DROP -> sprintf "%s|." str
   in
   aux pkt ""
  
