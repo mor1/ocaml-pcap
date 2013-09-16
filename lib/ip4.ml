@@ -113,10 +113,7 @@ let to_str h =
     | Some e -> protocol_to_string e
   in
   sprintf "%s,%s,%s, %d, %s,[%s]"
-    (ip_to_string h.src)
-    (ip_to_string h.dst)
-    proto
-    h.len
+    (ip_to_string h.src) (ip_to_string h.dst) proto h.len 
     (flags_to_string h.flags)
     "OPTS-NOT-PARSED"
 
@@ -125,17 +122,8 @@ let to_string h =
     | None -> sprintf "#%d" h.proto
     | Some e -> protocol_to_string e
   in
-  sprintf "ver:%d hlen:%d tos:%02x len:%d id:%d flags:%s offset:%d ttl:%d proto:%s xsum:%04x src:%s dst:%s opts:%s"
-    h.ver
-    h.hlen
-    h.tos
-    h.len
-    h.id
-    (flags_to_string h.flags)
-    h.offset
-    h.ttl
-    proto 
-    h.xsum
-    (ip_to_string h.src)
-    (ip_to_string h.dst)
+  sprintf "ver:%d hlen:%d tos:%02x len:%d id:%d flags:%s \
+           offset:%d ttl:%d proto:%s xsum:%04x src:%s dst:%s opts:%s"
+    h.ver h.hlen h.tos h.len h.id (flags_to_string h.flags)
+    h.offset h.ttl proto h.xsum (ip_to_string h.src) (ip_to_string h.dst)
     "OPTS-NOT-PARSED"
