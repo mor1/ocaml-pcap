@@ -15,30 +15,7 @@
  *)
   
 open Printf
-  
-let buf_to_string pfx buf = 
-  let line_len = 16 in
-  
-  let line bs = 
-    let line = ref "" in
-    for i = 0 to (min line_len (Cstruct.len bs)) - 1do
-      if i > 0 && i mod 8 == 0 then line := !line ^ " ";
-      line := sprintf "%s%02x." !line (Cstruct.get_uint8 bs i)
-    done;
-    !line
-  in
-  
-  let rec fold f acc = function
-    | buf when Cstruct.len buf < line_len -> 
-      sprintf "%s\n%s%s" acc pfx (line buf)
-    | buf -> 
-      fold f (f acc buf) (Cstruct.shift buf line_len)
-  in
-  
-  fold 
-    (fun a v -> sprintf "%s\n%s%s" a pfx (line v))
-    ""
-    buf
+open Operators 
 
 type t = 
   | ETH  of Ethernet.h * t
@@ -65,8 +42,8 @@ let to_str pkt =
 
       | DHCP p -> sprintf "%s|%s" str (Dhcp.to_str p)
 
-      | DATA bs -> sprintf "%s|DATA(%s)" str (buf_to_string "\t" bs)
-      | ERROR bs -> sprintf "%s|ERR(%s)" str (buf_to_string "\t" bs)
+      | DATA bs -> sprintf "%s|DATA(%s)" str (buf_to_string "\n\t" bs)
+      | ERROR bs -> sprintf "%s|ERR(%s)" str (buf_to_string "\n\t" bs)
   in
   aux pkt ""
 
@@ -84,8 +61,8 @@ let to_string pkt =
 
       | DHCP p -> sprintf "%s|%s" str (Dhcp.to_string p)
 
-      | DATA bs -> sprintf "%s|DATA(%s)" str (buf_to_string "\t" bs)
-      | ERROR bs -> sprintf "%s|ERR(%s)" str (buf_to_string "\t" bs)
+      | DATA bs -> sprintf "%s|DATA(%s)" str (buf_to_string "\n\t" bs)
+      | ERROR bs -> sprintf "%s|ERR(%s)" str (buf_to_string "\n\t" bs)
   in
   aux pkt ""
  
