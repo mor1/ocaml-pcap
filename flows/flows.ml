@@ -17,6 +17,7 @@
 open Operators
 open Pcap
 open Printf
+open Packet
 
 type st = {
   mutable nflows: int;
@@ -25,17 +26,27 @@ let st = {
   nflows = 0
 }
 
-let flow_demux st buf = 
-  let shallow_tcp4_port_demux st th =
+let flow ih th = (ih.Ip4.src, ih.Ip4.dst, th.Tcp4.srcpt, th.Tcp4.dstpt)
+let flow_to_str (srcip, dstip, srcpt, dstpt) = 
+  sprintf "%s/%d -> %s/%d"
+    (Ip4.ip_to_string srcip) srcpt (Ip4.ip_to_string dstip) dstpt
+
+(* filter and process only TCP/IP packets *)
+let process acc = function
+  | PCAP(h, ETH(eh, IP4(ih, TCP4(th, _)))) ->
+    let f = flow ih th in
+    printf "%d: %s\n%!" st.nflows (flow_to_str f);
     st.nflows <- st.nflows + 1;
-    (fun _ -> Packet.DROP)
-  in
+    acc+1
+  | _ -> acc+1
+
+(* customise protocol demux to be as shallow as we can: ETH -> IP -> TCP -> DROP *)
+let flow_demux st buf = 
   let shallow_ipproto_demux st ih = 
     let open Ip4 in
     match int_to_protocol ih.proto with
       | Some t -> (match t with
-          | UDP -> Demux.drop_demux
-          | TCP -> Demux.tcp4_demux st shallow_tcp4_port_demux
+          | TCP -> Demux.tcp4_demux st (fun st th -> Demux.drop_demux)
           | _ -> Demux.drop_demux
       )
       | None -> Demux.drop_demux
@@ -51,7 +62,7 @@ let flow_demux st buf =
   in
   Demux.eth_demux st shallow_ethertype_demux buf
 
-let buf filename = 
+let filename_to_buf filename = 
   printf "filename: %s\n" filename;
   let fd = Unix.(openfile filename [O_RDONLY] 0) in
   let buf = Bigarray.(Array1.map_file fd Bigarray.char c_layout false (-1)) in
@@ -67,11 +78,7 @@ let parse buf =
     | Some (pcap_header, pcap_packets) -> 
       let open Pcap in
       printf "### %s\n%!" (fh_to_string pcap_header);
-      let num_packets = Cstruct.fold
-        (fun a (PCAP(h, p)) -> 
-          printf "%d: %s\n\t%s\n%!" a (to_string h) (Packet.to_str p); (a+1))
-        pcap_packets 0
-      in
+      let num_packets = Cstruct.fold process pcap_packets 0 in
       printf "num_packets %d\n" num_packets;
       printf "num_flows %d\n%!" st.nflows
 
@@ -81,4 +88,4 @@ let _ =
     (fun x -> files := x :: !files)
     "Dump the contents of pcap files";
   let files = List.rev !files in
-  List.iter (fun file -> file |> buf |> parse) files
+  List.iter (fun file -> file |> filename_to_buf |> parse) files
