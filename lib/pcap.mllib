@@ -1,7 +1,8 @@
 # OASIS_START
-# DO NOT EDIT (digest: b13c3bff4f44827e9bed825650e5e18c)
+# DO NOT EDIT (digest: 41790be2b4f1e110e92ffb134dfe70ab)
 Pcap
 Ethernet
+Arp
 Ip4
 Udp4
 Tcp4

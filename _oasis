@@ -20,7 +20,7 @@ Library pcap
   Path:               lib
   Findlibname:        pcap-format
   Modules:
-    Pcap, Ethernet, Ip4, Udp4, Tcp4, Dhcp4, 
+    Pcap, Ethernet, Arp, Ip4, Udp4, Tcp4, Dhcp4, 
     Packet, Demux
   BuildDepends:       cstruct ( >= 0.5.0 ), cstruct.syntax
 
