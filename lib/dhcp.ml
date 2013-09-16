@@ -79,26 +79,11 @@ let flags_to_string f =
   sprintf "%s" (if is_bcast f then "B" else ".")
 
 let h_to_str h =
-  sprintf "%d,%d, %08lx"
-    h.op h.htype h.xid
-
-(* let to_str h =  *)
-(*   sprintf "%d,%d,%d,%d, %08x,%u,%s, %s,%s,%s,%s, '%s'" *)
-(*      h.op *)
-(*     h.htype *)
-(*     h.hlen *)
-(*     h.hops *)
-    
-(*     h.xid *)
-(*     (int h.secs) *)
-(*     (dhcp_flags_to_string  h.flags) *)
-    
-(*     (ip_addr_to_string h.ciaddr) *)
-(*     (ip_addr_to_string h.yiaddr) *)
-(*     (ip_addr_to_string h.siaddr) *)
-(*     (ip_addr_to_string h.giaddr) *)
-
-(*     (eth_addr_to_string (Array.sub h.chaddr 0 eth_addr_len)) *)
+   sprintf "%d,%d,%d,%d, %08lx,%u,%s, %s,%s,%s,%s, '%s'"
+     h.op h.htype h.hlen h.hops h.xid h.secs (flags_to_string h.flags)    
+    (Ip4.ip_to_string h.ciaddr) (Ip4.ip_to_string h.yiaddr)
+    (Ip4.ip_to_string h.siaddr) (Ip4.ip_to_string h.giaddr)
+    (Ethernet.mac_to_string h.chaddr)
 
 let h_to_string h =
   sprintf "op:%d htype:%d hlen:%d hops:%d xid:%08lx secs:%d flags:%s \
@@ -110,32 +95,12 @@ let h_to_string h =
     (Ethernet.mac_to_string h.chaddr)
     (buf_to_string " " h.sname)
     (buf_to_string " " h.file)
-                      
-(* let to_string h =  *)
-(*   sprintf "%d,%d,%d,%d, %08x,%u,%s, %s,%s,%s,%s, '%s','%s','%s'" *)
-(*     (int h.op) *)
-(*     (int h.htype) *)
-(*     (int h.hlen) *)
-(*     (int h.hops) *)
-    
-(*     h.xid *)
-(*     (int h.secs) *)
-(*     (verbose_dhcp_flags_to_string h.flags) *)
-    
-(*     (ip_addr_to_string h.ciaddr) *)
-(*     (ip_addr_to_string h.yiaddr) *)
-(*     (ip_addr_to_string h.siaddr) *)
-(*     (ip_addr_to_string h.giaddr) *)
-
-(*     (eth_addr_to_string (Array.sub h.chaddr 0 eth_addr_len)) *)
-(*     (bytes_to_hex_string h.sname) *)
-(*     (bytes_to_hex_string h.file) *)
 
 type p = 
   | UNKNOWN of Cstruct.t
 type t = h * p
 
 let to_str (h, UNKNOWN p) = 
-  sprintf "DHCP(%s)|%s" (h_to_str h) (buf_to_string "\n\t" p)
+  sprintf "DHCP(%s)" (h_to_str h)
 let to_string (h, UNKNOWN p) = 
   sprintf "DHCP(%s)|%s" (h_to_string h) (buf_to_string "\n\t" p)
