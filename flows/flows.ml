@@ -19,28 +19,50 @@ open Pcap
 open Printf
 open Packet
 
-type st = {
-  mutable nflows: int;
-}
-let st = {
-  nflows = 0
-}
+(** flow as IP 4-tuple (since we only care about TCP) *)
+type flow = (int32 * int * int32 * int)
 
-let flow ih th = (ih.Ip4.src, ih.Ip4.dst, th.Tcp4.srcpt, th.Tcp4.dstpt)
-let flow_to_str (srcip, dstip, srcpt, dstpt) = 
+let flow ih th = (ih.Ip4.src, th.Tcp4.srcpt, ih.Ip4.dst, th.Tcp4.dstpt)
+let flow_to_string (srcip, srcpt, dstip, dstpt) = 
   sprintf "%s/%d -> %s/%d"
     (Ip4.ip_to_string srcip) srcpt (Ip4.ip_to_string dstip) dstpt
 
-(* filter and process only TCP/IP packets *)
-let process acc = function
+(** Flow table *)
+module Flow = struct
+  type t = flow
+  let compare x y = compare x y
+end
+
+module Flows = Map.Make(Flow)
+
+(** State record: number of flows, and packets-per-flow *)
+type st = {
+  mutable nflows: int;
+  mutable flows: int Flows.t;
+}
+let st = {
+  nflows = 0;
+  flows = Flows.empty;
+}
+
+(* filter and process only TCP/IP packets to count 4-tuple flows *)
+let flow_counter acc = function
   | PCAP(h, ETH(eh, IP4(ih, TCP4(th, _)))) ->
     let f = flow ih th in
-    printf "%d: %s\n%!" st.nflows (flow_to_str f);
-    st.nflows <- st.nflows + 1;
+    (try
+      let n = Flows.find f st.flows in
+      st.flows <- Flows.add f (n+1) st.flows;
+    with Not_found -> 
+      st.flows <- Flows.add f 1 st.flows;
+      st.nflows <- st.nflows + 1;
+    );
     acc+1
   | _ -> acc+1
 
-(* customise protocol demux to be as shallow as we can: ETH -> IP -> TCP -> DROP *)
+(* customise protocol demux to be as shallow as we can: ETH -> IP -> TCP ->
+   DROP; not strictly necessary as it's hardly likely that doing a full demux
+   (per Demux.eth_demux) is a bottleneck given how few protocols are implemented,
+   but an excuse to test in principle *)
 let flow_demux st buf = 
   let shallow_ipproto_demux st ih = 
     let open Ip4 in
@@ -74,13 +96,13 @@ let parse buf =
   match Pcap.iter buf (flow_demux st) with
     | None -> 
       fprintf stderr "not a pcap file (failed to read magic number in header)\n%!"
-    
+        
     | Some (pcap_header, pcap_packets) -> 
       let open Pcap in
       printf "### %s\n%!" (fh_to_string pcap_header);
-      let num_packets = Cstruct.fold process pcap_packets 0 in
+      let num_packets = Cstruct.fold flow_counter pcap_packets 0 in
       printf "num_packets %d\n" num_packets;
-      printf "num_flows %d\n%!" st.nflows
+      printf "num_flows %d == %d\n%!" st.nflows (Flows.cardinal st.flows)
 
 let _ =
   let files = ref [] in
@@ -88,4 +110,7 @@ let _ =
     (fun x -> files := x :: !files)
     "Dump the contents of pcap files";
   let files = List.rev !files in
-  List.iter (fun file -> file |> filename_to_buf |> parse) files
+  List.iter (fun file -> file |> filename_to_buf |> parse) files;
+
+  printf "flows:\n%!";
+  Flows.iter (fun f n -> printf "\t%s = %d\n%!" (flow_to_string f) n) st.flows
