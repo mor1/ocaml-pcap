@@ -39,7 +39,7 @@ let parse filename =
       printf "### %s\n%!" (fh_to_string pcap_header);
       let num_packets = Cstruct.fold
         (fun a (PCAP(h, p)) -> 
-          printf "%d: %s\n\t%s\n%!" a (to_string h) (Packet.to_string p); (a+1))
+          printf "%d: %s\n\t%s\n%!" a (to_string h) (Packet.to_str p); (a+1))
         pcap_packets 0
       in
       printf "num_packets %d\n" num_packets
