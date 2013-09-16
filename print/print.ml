@@ -18,11 +18,31 @@
 
 (* Simple pcap printer which understands TCP/IP and ethernet *)
 
+(* suggested command line for maximum readability:
+
+    $ ./print.native packets.pcap | gawk -- '{  gsub("\\|", "\n\t\|"); print $0 }'
+
+*)
+
 open Operators
 open Pcap
 open Printf
 
-let parse filename =
+let print_all acc (PCAP(h, p)) = 
+  printf "%d: PCAP(%s)|%s\n%!" acc (to_string h) (Packet.to_str p); 
+  acc+1
+
+let print_tcp_not_port_443 acc (PCAP(h, p)) =
+  let open Packet in
+  match p with
+    | ETH(_, IP4(_, TCP4(th, _))) 
+        when th.Tcp4.dstpt != 443 && th.Tcp4.srcpt != 443 -> (
+          printf "%d: PCAP(%s)%s\n%!" acc (Pcap.to_string h) (Packet.to_str p);
+          acc+1
+        )
+    | _ -> acc
+
+let process processf filename =
   printf "filename: %s\n" filename;
   let fd = Unix.(openfile filename [O_RDONLY] 0) in
   let buf = Bigarray.(Array1.map_file fd Bigarray.char c_layout false (-1)) in
@@ -37,11 +57,7 @@ let parse filename =
     | Some (pcap_header, pcap_packets) -> 
       let open Pcap in
       printf "### %s\n%!" (fh_to_string pcap_header);
-      let num_packets = Cstruct.fold
-        (fun a (PCAP(h, p)) -> 
-          printf "%d: %s\n\t%s\n%!" a (to_string h) (Packet.to_str p); (a+1))
-        pcap_packets 0
-      in
+      let num_packets = Cstruct.fold processf pcap_packets 0 in
       printf "num_packets %d\n" num_packets
 
 let _ =
@@ -50,4 +66,4 @@ let _ =
     (fun x -> files := x :: !files)
     "Dump the contents of pcap files";
   let files = List.rev !files in
-  List.iter parse files
+  List.iter (process print_all (* print_tcp_not_port_443 *)) files
