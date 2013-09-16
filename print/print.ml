@@ -22,34 +22,6 @@ open Operators
 open Pcap
 open Printf
 
-(*
-let print_packet p =
-  printf "ETH(%s)|" (Ethernet.to_str p);
-  let ethertype = Ethernet.(get_ethernet_ethertype p |> int_to_ethertype) in
-  match ethertype with
-    | Some Ethernet.IP4 -> (
-      let ip = Cstruct.shift p Ethernet.sizeof_ethernet in
-      printf "IP4(%s)|" (Ip.to_string ip);
-      let proto = Ip.(get_ip4_proto ip |> int_to_protocol) in
-      match proto with 
-        | Some Ip.TCP -> (
-          let tcp = Cstruct.shift ip Ip.sizeof_ip4 in
-          let offset = Tcp.get_tcp4_offset tcp in
-          let payload = Cstruct.shift tcp offset in
-          printf "TCP4(%s)|" (Tcp.to_string tcp);
-          printf "%S\n" (Cstruct.to_string payload)
-        )
-        | Some Ip.UDP -> (
-          let udp = Udp.h ip in
-          printf "UDP4(%s)|" (Udp.h_to_string udp)
-        )
-        | Some proto -> printf "unknown ip proto %d\n" (Ip.protocol_to_int proto)
-        | None -> printf "parse error\n"
-    )
-    | _ -> printf "unknown ethertype\n"
-    
-*)
-
 let parse filename =
   printf "filename: %s\n" filename;
   let fd = Unix.(openfile filename [O_RDONLY] 0) in
