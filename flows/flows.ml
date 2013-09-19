@@ -72,7 +72,7 @@ module BiFlows = Map.Make(Bidir)
 
 module Flowstate = struct
   type t = {
-    mutable npkts: int;
+    npkts: int;
   }
 
   let to_string t = 
@@ -82,17 +82,15 @@ module Flowstate = struct
     { npkts = 0;
     }
     
-  let update fst f = 
-    { fst with npkts = fst.npkts + 1
-    }
+  let update_npkts fst n = { fst with npkts = n }
 
 end
 
 module State = struct
   type t = {
-    mutable npkts: int;
-    mutable nflows: int;
-    mutable biflows: Flowstate.t BiFlows.t;
+    npkts: int;
+    nflows: int;
+    biflows: Flowstate.t BiFlows.t;
   }
 
   let create () = {
@@ -101,6 +99,11 @@ module State = struct
     biflows = BiFlows.empty;
   }
 
+  let update_npkts st n = { st with npkts = n }
+  let update_nflows st n = { st with nflows = n }
+  let update_biflows st t fst =
+    { st with biflows = BiFlows.add t fst st.biflows }
+
   let to_string t = 
     let hdr = sprintf "npkts: %d\nnflows: %d\n" t.npkts t.nflows in
     BiFlows.fold
@@ -108,7 +111,7 @@ module State = struct
         sprintf "%s%s: %s\n" acc (Bidir.to_string f) (Flowstate.to_string fst)
       ) 
       t.biflows hdr
-  
+      
   let dump t = 
     printf "npkts: %d\nnflows: %d\n" t.npkts t.nflows;
     BiFlows.iter
@@ -120,29 +123,24 @@ end
 
 (** how to process each packet *)
 let pkt_process st pkt =
-  State.(
-    if st.npkts mod 1_000_000 == 0 then
-      printf "npkts=%d nflows=%d\n%!" st.npkts st.nflows
-  );
+  let open State in
+  if st.npkts mod 1_000_000 == 0 then
+    printf "npkts=%d nflows=%d\n%!" st.npkts st.nflows;
 
-  (match pkt with
+  let st = update_npkts st (st.npkts+1) in
+  match pkt with
     | PCAP(h, ETH(eh, IP4(ih, TCP4(th, _)))) ->
       let t = Bidir.t ih th in
       let f = Bidir.f ih th in
-      State.(
-         let fst = 
-           try
-             BiFlows.find t st.biflows
-           with Not_found -> 
-             st.nflows <- st.nflows + 1;
-             Flowstate.create f
-         in
-         st.biflows <- BiFlows.add t (Flowstate.update fst f) st.biflows
-      );
-    | _ -> ()
-  );
-  State.(st.npkts <- st.npkts + 1);
-  st
+      let fst, st = 
+        try
+          BiFlows.find t st.biflows, st
+        with Not_found -> 
+          Flowstate.create f, (update_nflows st (st.nflows+1))
+      in
+      let fst = Flowstate.(update_npkts fst (fst.npkts+1)) in
+      update_biflows st t fst
+    | _ -> st
 
 (** parse a buffer, with state *)
 let parse st buf =
