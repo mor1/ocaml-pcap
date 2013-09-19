@@ -29,7 +29,7 @@ open Pcap
 open Printf
 
 let print_all acc (PCAP(h, p)) = 
-  printf "%d: PCAP(%s)|%s\n%!" acc (to_string h) (Packet.to_str p); 
+  printf "%d: PCAP(%s)%s\n%!" acc (to_str h) (Packet.to_str p); 
   acc+1
 
 let print_tcp_not_port_443 acc (PCAP(h, p)) =
