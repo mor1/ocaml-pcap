@@ -41,8 +41,6 @@ module Bidir = struct
   type f = t * dir
   
   let compare x y = compare x y
-
-  let t ih th = (ih.Ip4.src, th.Tcp4.srcpt, ih.Ip4.dst, th.Tcp4.dstpt)
   
   let f ih th = 
     let (tx, txpt, rx, rxpt) = 
@@ -53,10 +51,9 @@ module Bidir = struct
     else
       (rx, rxpt, tx, txpt, BACK)
 
-  let f_to_t (tx, txpt, rx, rxpt, dir) =
-    match dir with
-      | OUT -> tx, txpt, rx, rxpt
-      | BACK -> rx, rxpt, tx, txpt
+  let t ih th =
+    let (tx, txpt, rx, rxpt, _) = f ih th in
+    (tx, txpt, rx, rxpt)
 
   let to_string (tx, txpt, rx, rxpt) =
     sprintf "%s/%d -> %s/%d"
@@ -98,6 +95,12 @@ module State = struct
     mutable biflows: Flowstate.t BiFlows.t;
   }
 
+  let create () = {
+    npkts = 0;
+    nflows = 0;
+    biflows = BiFlows.empty;
+  }
+
   let to_string t = 
     let hdr = sprintf "npkts: %d\nnflows: %d\n" t.npkts t.nflows in
     BiFlows.fold
@@ -130,10 +133,11 @@ let pkt_process st pkt =
          let fst = 
            try
              BiFlows.find t st.biflows
-           with Not_found -> Flowstate.create f
+           with Not_found -> 
+             st.nflows <- st.nflows + 1;
+             Flowstate.create f
          in
-         st.biflows <- BiFlows.add t (Flowstate.update fst f) st.biflows;
-         st.nflows <- st.nflows + 1;
+         st.biflows <- BiFlows.add t (Flowstate.update fst f) st.biflows
       );
     | _ -> ()
   );
@@ -192,12 +196,7 @@ let filename_to_buf filename =
 
 (** entry point *)
 let _ =
-  let st = State.({
-    npkts = 0;
-    nflows = 0;
-    biflows = BiFlows.empty;
-  })
-  in
+  let st = State.create () in
   let files = ref [] in
   Arg.parse []
     (fun x -> files := x :: !files)
