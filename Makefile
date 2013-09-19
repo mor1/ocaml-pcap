@@ -37,4 +37,5 @@ reinstall: setup.ml
 
 clean:
 	ocamlbuild -clean
-	rm -f setup.data setup.log
+	$(RM) setup.data setup.log
+	$(RM) flows.native print.native
