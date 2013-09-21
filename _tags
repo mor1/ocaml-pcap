@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: a61b2718801cc09dc2fddab2bf6c97cd)
+# DO NOT EDIT (digest: 2d29c4ccb6c8fab5c780c491904f7865)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -13,50 +13,65 @@
 ".git": not_hygienic
 "_darcs": -traverse
 "_darcs": not_hygienic
-# Library pcap
-"lib/pcap.cmxs": use_pcap
+# Library capture
+"lib/capture.cmxs": use_capture
+"lib/packet.cmx": for-pack(Capture)
+"lib/demux.cmx": for-pack(Capture)
+"lib/ethernet.cmx": for-pack(Capture)
+"lib/arp.cmx": for-pack(Capture)
+"lib/icmp.cmx": for-pack(Capture)
+"lib/ip4.cmx": for-pack(Capture)
+"lib/udp4.cmx": for-pack(Capture)
+"lib/tcp4.cmx": for-pack(Capture)
+"lib/dhcp4.cmx": for-pack(Capture)
+"lib/pcap.cmx": for-pack(Capture)
 <lib/*.ml{,i}>: pkg_cstruct
 <lib/*.ml{,i}>: pkg_cstruct.syntax
 # Library mirage
 "mirage/mirage.cmxs": use_mirage
-<mirage/*.ml{,i}>: use_pcap
+<mirage/*.ml{,i}>: use_capture
 <mirage/*.ml{,i}>: pkg_lwt
 <mirage/*.ml{,i}>: pkg_cstruct
-<mirage/*.ml{,i}>: pkg_mirage-net
 <mirage/*.ml{,i}>: pkg_lwt.syntax
+<mirage/*.ml{,i}>: pkg_mirage-net
 <mirage/*.ml{,i}>: pkg_cstruct.syntax
 # Executable print
-<print/print.{native,byte}>: use_pcap
-<print/print.{native,byte}>: pkg_lwt
-<print/print.{native,byte}>: pkg_lwt.unix
-<print/print.{native,byte}>: pkg_cstruct
-<print/print.{native,byte}>: pkg_cstruct.syntax
-<print/*.ml{,i}>: use_pcap
-<print/*.ml{,i}>: pkg_lwt
-<print/*.ml{,i}>: pkg_lwt.unix
-<print/*.ml{,i}>: pkg_cstruct
-<print/*.ml{,i}>: pkg_cstruct.syntax
-<print/print.{native,byte}>: custom
+<unix/print.{native,byte}>: use_capture
+<unix/print.{native,byte}>: pkg_lwt
+<unix/print.{native,byte}>: pkg_lwt.unix
+<unix/print.{native,byte}>: pkg_cstruct
+<unix/print.{native,byte}>: pkg_lwt.syntax
+<unix/print.{native,byte}>: pkg_cstruct.syntax
+<unix/print.{native,byte}>: custom
 # Executable flows
-<flows/flows.{native,byte}>: use_pcap
-<flows/flows.{native,byte}>: pkg_lwt
-<flows/flows.{native,byte}>: pkg_lwt.unix
-<flows/flows.{native,byte}>: pkg_cstruct
-<flows/flows.{native,byte}>: pkg_cstruct.syntax
-<flows/*.ml{,i}>: use_pcap
-<flows/*.ml{,i}>: pkg_lwt
-<flows/*.ml{,i}>: pkg_lwt.unix
-<flows/*.ml{,i}>: pkg_cstruct
-<flows/*.ml{,i}>: pkg_cstruct.syntax
-<flows/flows.{native,byte}>: custom
+<unix/flows.{native,byte}>: use_capture
+<unix/flows.{native,byte}>: pkg_lwt
+<unix/flows.{native,byte}>: pkg_lwt.unix
+<unix/flows.{native,byte}>: pkg_cstruct
+<unix/flows.{native,byte}>: pkg_lwt.syntax
+<unix/flows.{native,byte}>: pkg_cstruct.lwt
+<unix/flows.{native,byte}>: pkg_cstruct.syntax
+<unix/*.ml{,i}>: pkg_lwt
+<unix/*.ml{,i}>: pkg_lwt.unix
+<unix/*.ml{,i}>: pkg_lwt.syntax
+<unix/*.ml{,i}>: pkg_cstruct.lwt
+<unix/flows.{native,byte}>: custom
+# Executable copy
+<unix/copy.{native,byte}>: use_capture
+<unix/copy.{native,byte}>: pkg_cstruct
+<unix/copy.{native,byte}>: pkg_cstruct.syntax
+<unix/*.ml{,i}>: use_capture
+<unix/*.ml{,i}>: pkg_cstruct
+<unix/*.ml{,i}>: pkg_cstruct.syntax
+<unix/copy.{native,byte}>: custom
 # Executable test
-<lib_test/test.{native,byte}>: use_pcap
+<lib_test/test.{native,byte}>: use_capture
 <lib_test/test.{native,byte}>: pkg_lwt
 <lib_test/test.{native,byte}>: pkg_lwt.unix
 <lib_test/test.{native,byte}>: pkg_cstruct
 <lib_test/test.{native,byte}>: pkg_oUnit
 <lib_test/test.{native,byte}>: pkg_cstruct.syntax
-<lib_test/*.ml{,i}>: use_pcap
+<lib_test/*.ml{,i}>: use_capture
 <lib_test/*.ml{,i}>: pkg_lwt
 <lib_test/*.ml{,i}>: pkg_lwt.unix
 <lib_test/*.ml{,i}>: pkg_cstruct

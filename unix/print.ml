@@ -25,14 +25,15 @@
 *)
 
 open Operators
-open Pcap
+open Capture
+open Capture.Pcap
 open Printf
 
-let print_all acc (PCAP(h, p)) = 
-  printf "%d: PCAP(%s)|%s\n%!" acc (to_string h) (Packet.to_str p); 
+let print_all acc (PCAP(h, p, _)) = 
+  printf "%d: PCAP(%s)%s\n%!" acc (to_str h) (Packet.to_str p); 
   acc+1
 
-let print_tcp_not_port_443 acc (PCAP(h, p)) =
+let print_tcp_not_port_443 acc (PCAP(h, p, _)) =
   let open Packet in
   match p with
     | ETH(_, IP4(_, TCP4(th, _))) 

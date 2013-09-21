@@ -1,7 +1,6 @@
 (*
  * Copyright (c) 2012 Anil Madhavapeddy <anil@recoil.org>
  * Copyright (C) 2012 Citrix Systems Inc
- * Copyright (C) 2013 Richard Mortier <mort@cantab.net>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,50 +15,43 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-open Printf
+val major_version: int
+(** Major version of the pcap format which we understand *)
 
-let major_version = 2
+val minor_version: int
+(** Minor version of the pcap format which we understand *)
 
-let minor_version = 4
+type endian =
+| Big     (** Big endian (pcap headers) *)
+| Little  (** Little endian (pcap headers) *)
 
-let magic_number = 0xa1b2c3d4_l
+val string_of_endian : endian -> string
 
-type endian = | Big | Little
+val sizeof_pcap_header: int
+(** The size of the initial pcap header in bytes *)
 
-let string_of_endian = function
-| Big    -> "big"
-| Little -> "little"
+val sizeof_pcap_packet: int
+(** The size of the per-packet pcap headers in bytes *)
 
-(* The pcap format allows the writer to use either big- or little- endian,
-   depending on which is most convenient (higher performance). We are able
-   to read both, but we haven't optimised the low-level set_* functions
-   enough to make it worthwhile to bother detecting native endian-ness and
-   switching. *)
+val magic_number: int32
+(** The magic number which identifies a pcap file (and endian-ness) *)
 
-module Network = struct
+module Network : sig
+  (** Type of outermost network protocol within the captured frames *)
 
   type t =
     | Ethernet
     | Ieee80211
 
-  let t_to_int32 = [
-      Ethernet,  1l
-    ; Ieee80211, 105l
-  ]
+  val to_int32: t -> int32
 
-  let int32_to_t = List.map (fun (x, y) -> y, x) t_to_int32
-
-  let to_int32 x = List.assoc x t_to_int32
-
-  let of_int32 x =
-    if List.mem_assoc x int32_to_t
-    then Some (List.assoc x int32_to_t)
-    else None
+  val of_int32: int32 -> t option
 
 end
 
-module LE = struct
-  let endian = Little
+module LE : sig
+
+  val endian : endian
 
   cstruct pcap_header {
     uint32_t magic_number;   (* magic number *)
@@ -80,8 +72,9 @@ module LE = struct
 
 end
 
-module BE = struct
-  let endian = Big
+module BE : sig
+
+  val endian : endian
 
   cstruct pcap_header {
     uint32_t magic_number;   (* magic number *)
@@ -99,14 +92,15 @@ module BE = struct
     uint32_t incl_len;       (* number of octets of packet saved in file *)
     uint32_t orig_len        (* actual length of packet *)
   } as big_endian
+
 end
-
-let sizeof_pcap_header = BE.sizeof_pcap_header (* = LE.sizeof_pcap_header *)
-
-let sizeof_pcap_packet = BE.sizeof_pcap_packet (* = LE.sizeof_pcap_packet *)
 
 module type HDR = sig
+  (** Functions to read/write pcap header fields of a particular
+      endian-ness *)
+
   val endian: endian
+  (** The detected endian-ness of the headers *)
 
   val get_pcap_header_magic_number: Cstruct.t -> int32
   val get_pcap_header_version_major: Cstruct.t -> int
@@ -133,7 +127,20 @@ module type HDR = sig
   val set_pcap_packet_ts_usec: Cstruct.t -> int32 -> unit
   val set_pcap_packet_incl_len: Cstruct.t -> int32 -> unit
   val set_pcap_packet_orig_len: Cstruct.t -> int32 -> unit
+
 end
+
+(*
+
+val detect: Cstruct.t -> (module HDR) option
+(** [detect buf] returns a module capable of reading the pcap header fields, or
+    None if the buffer doesn't contain pcap data. *)
+
+val packets: (module HDR) -> Cstruct.t -> (Cstruct.t * Cstruct.t) Cstruct.iter
+(** [packets hdr buf] returns a Cstruct.iter (sequence) containing
+    (pcap header, pcap body) pairs. *)
+
+*)
 
 type fh = {
   magic_number: int32;
@@ -146,16 +153,8 @@ type fh = {
   network: int32       (* data link type *)
 }
 
-let fh_to_str fh =
-  sprintf "%d.%d/%s, %lu, %lu, %lu, %lu"
-    fh.version_major fh.version_minor (string_of_endian fh.endian)
-    fh.timezone fh.sigfigs fh.snaplen fh.network
-
-let fh_to_string fh = 
-  sprintf "magic_number:%.8lx endian:%s version_major:%d version_minor:%d \
-           timezone:%lu sigfigs:%lu snaplen:%lu lltype:%lu"
-    fh.magic_number (string_of_endian fh.endian) fh.version_major fh.version_minor 
-    fh.timezone fh.sigfigs fh.snaplen fh.network
+val fh_to_str: fh -> string
+val fh_to_string: fh -> string
 
 type h = {
   secs: int32;
@@ -164,50 +163,9 @@ type h = {
   len: int32;
 }
 
-let to_str h =
-  sprintf "%lu.%06lu %lu[%lu]" h.secs h.usecs h.caplen h.len
-
-let to_string h =
-  sprintf "secs:%lu usecs:%lu caplen:%lu len:%lu" h.secs h.usecs h.caplen h.len
+val to_str: h -> string
+val to_string: h -> string
 
 type t = PCAP of h * Packet.t * Cstruct.t
 
-let iter buf demuxf =
-  let pcap_hdr =
-    let le_magic = LE.get_pcap_header_magic_number buf in
-    let be_magic = BE.get_pcap_header_magic_number buf in
-    if le_magic = magic_number then Some (module LE: HDR)
-    else if be_magic = magic_number then Some (module BE: HDR)
-    else None
-  in
-  match pcap_hdr with
-    | None -> None
-    | Some h -> 
-      let module H = (val h : HDR) in
-      
-      let h buf = 
-        { secs = H.get_pcap_packet_ts_sec buf;
-          usecs = H.get_pcap_packet_ts_usec buf;
-          caplen = H.get_pcap_packet_incl_len buf;
-          len = H.get_pcap_packet_orig_len buf
-        }
-      in
-
-      let fh = 
-        { magic_number = H.get_pcap_header_magic_number buf;
-          endian = H.endian;
-          version_major = H.get_pcap_header_version_major buf;
-          version_minor = H.get_pcap_header_version_minor buf;
-          timezone = H.get_pcap_header_thiszone buf;
-          sigfigs = H.get_pcap_header_sigfigs buf;
-          snaplen = H.get_pcap_header_snaplen buf;
-          network = H.get_pcap_header_network buf;
-        }
-      in
-      let _, buf = Cstruct.split buf sizeof_pcap_header in
-      Some (
-        fh, Cstruct.iter 
-          (fun buf -> Some (sizeof_pcap_packet + (Int32.to_int (H.get_pcap_packet_incl_len buf))))
-          (fun buf -> PCAP(h buf, demuxf (Cstruct.shift buf sizeof_pcap_packet), buf))
-          buf
-      )
+val iter: Cstruct.t -> (Cstruct.t -> Packet.t) -> (fh * t Cstruct.iter) option
