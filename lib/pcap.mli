@@ -142,7 +142,19 @@ val packets: (module HDR) -> Cstruct.t -> (Cstruct.t * Cstruct.t) Cstruct.iter
 
 *)
 
+type fh = {
+  magic_number: int32;
+  endian: endian;
+  version_major: int;
+  version_minor: int;
+  timezone: int32;     (* GMT to local correction *)
+  sigfigs: int32;      (* accuracy of timestamps *)
+  snaplen: int32;      (* max length of captured packets, in octets *)
+  network: int32       (* data link type *)
+}
 
+val fh_to_str: fh -> string
+val fh_to_string: fh -> string
 
 type h = {
   secs: int32;
@@ -150,4 +162,10 @@ type h = {
   caplen: int32;
   len: int32;
 }
+
+val to_str: h -> string
+val to_string: h -> string
+
 type t = PCAP of h * Packet.t
+
+val iter: Cstruct.t -> (Cstruct.t -> Packet.t) -> (fh * t Cstruct.iter) option

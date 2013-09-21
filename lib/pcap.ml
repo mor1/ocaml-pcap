@@ -136,10 +136,10 @@ module type HDR = sig
 end
 
 type fh = {
-  magic: int32;
+  magic_number: int32;
   endian: endian;
-  ver_major: int;
-  ver_minor: int;
+  version_major: int;
+  version_minor: int;
   timezone: int32;     (* GMT to local correction *)
   sigfigs: int32;      (* accuracy of timestamps *)
   snaplen: int32;      (* max length of captured packets, in octets *)
@@ -148,14 +148,14 @@ type fh = {
 
 let fh_to_str fh =
   sprintf "%d.%d/%s, %lu, %lu, %lu, %lu"
-    fh.ver_major fh.ver_minor (string_of_endian fh.endian)
-    fh.timezone fh.sigfigs fh.snaplen, fh.network
+    fh.version_major fh.version_minor (string_of_endian fh.endian)
+    fh.timezone fh.sigfigs fh.snaplen fh.network
 
 let fh_to_string fh = 
-  sprintf "magic:%.8lx endian:%s ver_major:%d ver_minor:%d timezone:%lu \
-           sigfigs:%lu snaplen:%lu lltype:%lu"
-    fh.magic (string_of_endian fh.endian) fh.ver_major fh.ver_minor fh.timezone
-    fh.sigfigs fh.snaplen fh.network
+  sprintf "magic_number:%.8lx endian:%s version_major:%d version_minor:%d \
+           timezone:%lu sigfigs:%lu snaplen:%lu lltype:%lu"
+    fh.magic_number (string_of_endian fh.endian) fh.version_major fh.version_minor 
+    fh.timezone fh.sigfigs fh.snaplen fh.network
 
 type h = {
   secs: int32;
@@ -194,10 +194,10 @@ let iter buf demuxf =
       in
 
       let fh = 
-        { magic = H.get_pcap_header_magic_number buf;
+        { magic_number = H.get_pcap_header_magic_number buf;
           endian = H.endian;
-          ver_major = H.get_pcap_header_version_major buf;
-          ver_minor = H.get_pcap_header_version_minor buf;
+          version_major = H.get_pcap_header_version_major buf;
+          version_minor = H.get_pcap_header_version_minor buf;
           timezone = H.get_pcap_header_thiszone buf;
           sigfigs = H.get_pcap_header_sigfigs buf;
           snaplen = H.get_pcap_header_snaplen buf;
