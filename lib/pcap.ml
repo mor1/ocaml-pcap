@@ -22,6 +22,8 @@ let major_version = 2
 
 let minor_version = 4
 
+let magic_number = 0xa1b2c3d4_l
+
 type endian = | Big | Little
 
 let string_of_endian = function
@@ -171,7 +173,6 @@ let to_string h =
 type t = PCAP of h * Packet.t
 
 let iter buf demuxf =
-  let magic_number = 0xa1b2c3d4l in
   let pcap_hdr =
     let le_magic = LE.get_pcap_header_magic_number buf in
     let be_magic = BE.get_pcap_header_magic_number buf in
