@@ -1,7 +1,7 @@
 OASISFormat: 0.3
 Name:        pcap
 Version:     0.4
-Synopsis:    Pcap tools
+Synopsis:    Packet capture tools
 Authors:     Anil Madhavapeddy, Dave Scott, Richard Mortier
 License:     ISC
 Plugins:     META (0.2)
@@ -15,47 +15,49 @@ Flag mirage
   Description: build the mirage library
   Default: false
 
-Library pcap
-  CompiledObject:     best
-  Path:               lib
-  Findlibname:        pcap-format
+Library capture
+  CompiledObject: best
+  Path: lib
+  Findlibname: pcap-format
+  Pack: true
   Modules:
-    Pcap, Ethernet, Arp, Icmp, Ip4, Udp4, Tcp4, Dhcp4, 
-    Packet, Demux
-  BuildDepends:       cstruct ( >= 0.5.0 ), cstruct.syntax
+    Packet, Demux,
+    Ethernet, Arp, Icmp, Ip4, Udp4, Tcp4, Dhcp4,
+    Pcap
+  BuildDepends: cstruct ( >= 0.5.0 ), cstruct.syntax
 
 Library mirage
-  Build$:             flag(mirage)
-  CompiledObject:     best
-  Path:               mirage
-  Findlibname:        mirage
-  Findlibparent:      pcap
-  Modules:            Pcap_mirage, Lwt_bounded_stream
-  BuildDepends:       mirage-net, pcap-format, lwt, lwt.syntax
+  Build$: flag(mirage)
+  CompiledObject: best
+  Path: mirage
+  Findlibname: mirage
+  Findlibparent: capture
+  Modules: Pcap_mirage, Lwt_bounded_stream
+  BuildDepends: mirage-net, pcap-format, lwt, lwt.syntax
 
 Executable print
-  Build$:             flag(unix)
-  CompiledObject:     best
-  Path:               print
-  MainIs:             print.ml
-  Custom:             true
-  Install:            false
-  BuildDepends:       lwt, lwt.unix, pcap-format
+  Build$: flag(unix)
+  CompiledObject: best
+  Path: print
+  MainIs: print.ml
+  Custom: true
+  Install: false
+  BuildDepends: lwt, lwt.unix, pcap-format
 
 Executable flows
-  Build$:             flag(unix)
-  CompiledObject:     best
-  Path:               flows
-  MainIs:             flows.ml
-  Custom:             true
-  Install:            false
-  BuildDepends:       lwt, lwt.unix, pcap-format
+  Build$: flag(unix)
+  CompiledObject: best
+  Path: flows
+  MainIs: flows.ml
+  Custom: true
+  Install: false
+  BuildDepends: lwt, lwt.unix, pcap-format
 
 Executable test
-  Path:               lib_test
-  MainIs:             test.ml
-  Build$:             flag(tests)
-  Custom:             true
-  CompiledObject:     best
-  Install:            false
-  BuildDepends:       lwt, lwt.unix, cstruct, pcap-format, oUnit
+  Path: lib_test
+  MainIs: test.ml
+  Build$: flag(tests)
+  Custom: true
+  CompiledObject: best
+  Install: false
+  BuildDepends: lwt, lwt.unix, cstruct, pcap-format, oUnit
