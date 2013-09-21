@@ -72,7 +72,7 @@ module BiFlows = Map.Make(Bidir)
 
 module Flowstate = struct
   type t = {
-    npkts: int;
+    mutable npkts: int;
   }
 
   let to_string t = 
@@ -82,15 +82,13 @@ module Flowstate = struct
     { npkts = 0;
     }
     
-  let update_npkts fst n = { fst with npkts = n }
-
 end
 
 module State = struct
   type t = {
-    npkts: int;
-    nflows: int;
-    biflows: Flowstate.t BiFlows.t;
+    mutable npkts: int;
+    mutable nflows: int;
+    mutable biflows: Flowstate.t BiFlows.t;
   }
 
   let create () = {
@@ -98,11 +96,6 @@ module State = struct
     nflows = 0;
     biflows = BiFlows.empty;
   }
-
-  let update_npkts st n = { st with npkts = n }
-  let update_nflows st n = { st with nflows = n }
-  let update_biflows st t fst =
-    { st with biflows = BiFlows.add t fst st.biflows }
 
   let to_string t = 
     let hdr = sprintf "npkts: %d\nnflows: %d\n" t.npkts t.nflows in
@@ -127,20 +120,23 @@ let pkt_process st pkt =
   if st.npkts mod 1_000_000 == 0 then
     printf "npkts=%d nflows=%d\n%!" st.npkts st.nflows;
 
-  let st = update_npkts st (st.npkts+1) in
-  match pkt with
+  st.npkts <- st.npkts + 1;
+  (match pkt with
     | PCAP(h, ETH(eh, IP4(ih, TCP4(th, _)))) ->
       let t = Bidir.t ih th in
       let f = Bidir.f ih th in
-      let fst, st = 
+      let fst = 
         try
-          BiFlows.find t st.biflows, st
+          BiFlows.find t st.biflows
         with Not_found -> 
-          Flowstate.create f, (update_nflows st (st.nflows+1))
+          st.nflows <- st.nflows + 1;
+          Flowstate.create f
       in
-      let fst = Flowstate.(update_npkts fst (fst.npkts+1)) in
-      update_biflows st t fst
-    | _ -> st
+      Flowstate.(fst.npkts <- fst.npkts + 1);
+      st.biflows <- BiFlows.add t fst st.biflows
+    | _ -> ()
+  );
+  st
 
 (** parse a buffer, with state *)
 let parse st buf =
@@ -179,11 +175,9 @@ let parse st buf =
     | Some (header, packets) -> 
       let open Pcap in
       printf "### %s\n%!" (fh_to_string header);
-      State.(
-        let st = Cstruct.fold pkt_process packets st in
-        printf "npkts: %d\n" st.npkts;
-        printf "nflows: %d == %d\n%!" st.nflows (BiFlows.cardinal st.biflows)
-      )
+      let _ = Cstruct.fold pkt_process packets st in
+      printf "npkts: %d\n" st.State.npkts;
+      printf "nflows: %d == %d\n%!" st.State.nflows (BiFlows.cardinal st.State.biflows)
 
 (** convert [filename] string to a buffer by opening and mapping file *)
 let filename_to_buf filename = 
