@@ -53,6 +53,15 @@ Executable flows
   Install: false
   BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format, cstruct.lwt
 
+Executable copy
+  Build$: flag(unix)
+  CompiledObject: best
+  Path: unix
+  MainIs: copy.ml
+  Custom: true
+  Install: false
+  BuildDepends: pcap-format
+
 Executable test
   Path: lib_test
   MainIs: test.ml
