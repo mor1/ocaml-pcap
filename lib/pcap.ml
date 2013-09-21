@@ -170,7 +170,7 @@ let to_str h =
 let to_string h =
   sprintf "secs:%lu usecs:%lu caplen:%lu len:%lu" h.secs h.usecs h.caplen h.len
 
-type t = PCAP of h * Packet.t
+type t = PCAP of h * Packet.t * Cstruct.t
 
 let iter buf demuxf =
   let pcap_hdr =
@@ -208,6 +208,6 @@ let iter buf demuxf =
       Some (
         fh, Cstruct.iter 
           (fun buf -> Some (sizeof_pcap_packet + (Int32.to_int (H.get_pcap_packet_incl_len buf))))
-          (fun buf -> PCAP(h buf, demuxf (Cstruct.shift buf sizeof_pcap_packet)))
+          (fun buf -> PCAP(h buf, demuxf (Cstruct.shift buf sizeof_pcap_packet), buf))
           buf
       )

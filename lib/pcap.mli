@@ -166,6 +166,6 @@ type h = {
 val to_str: h -> string
 val to_string: h -> string
 
-type t = PCAP of h * Packet.t
+type t = PCAP of h * Packet.t * Cstruct.t
 
 val iter: Cstruct.t -> (Cstruct.t -> Packet.t) -> (fh * t Cstruct.iter) option
