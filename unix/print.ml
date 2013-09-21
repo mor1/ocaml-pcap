@@ -25,7 +25,8 @@
 *)
 
 open Operators
-open Pcap
+open Capture
+open Capture.Pcap
 open Printf
 
 let print_all acc (PCAP(h, p)) = 
