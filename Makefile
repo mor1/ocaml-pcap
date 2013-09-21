@@ -15,6 +15,7 @@ setup.ml: _oasis
 setup.data: setup.ml
 	ocaml setup.ml -configure $(UNIX) $(MIRAGE) $(TESTS)
 
+
 build: setup.data setup.ml
 	ocaml setup.ml -build -j $(J)
 
@@ -27,9 +28,12 @@ install: setup.data setup.ml
 # XXX: this isn't running the test for some reason
 #test: setup.ml build
 #	ocaml setup.ml -test
-.PHONY:test
+
+.PHONY: test setup reinstall clean
 test:
 	./_build/lib_test/test.native
+
+setup: setup.ml setup.data
 
 reinstall: setup.ml
 	ocamlfind remove $(NAME) || true
