@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: c4322d77005016d9b5be6dbf8bcc0494)
+# DO NOT EDIT (digest: c64628e195cfdce0d50a21d4813f8d15)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -32,33 +32,33 @@
 <mirage/*.ml{,i}>: use_capture
 <mirage/*.ml{,i}>: pkg_lwt
 <mirage/*.ml{,i}>: pkg_cstruct
-<mirage/*.ml{,i}>: pkg_mirage-net
 <mirage/*.ml{,i}>: pkg_lwt.syntax
+<mirage/*.ml{,i}>: pkg_mirage-net
 <mirage/*.ml{,i}>: pkg_cstruct.syntax
 # Executable print
-<print/print.{native,byte}>: use_capture
-<print/print.{native,byte}>: pkg_lwt
-<print/print.{native,byte}>: pkg_lwt.unix
-<print/print.{native,byte}>: pkg_cstruct
-<print/print.{native,byte}>: pkg_cstruct.syntax
-<print/*.ml{,i}>: use_capture
-<print/*.ml{,i}>: pkg_lwt
-<print/*.ml{,i}>: pkg_lwt.unix
-<print/*.ml{,i}>: pkg_cstruct
-<print/*.ml{,i}>: pkg_cstruct.syntax
-<print/print.{native,byte}>: custom
+<unix/print.{native,byte}>: use_capture
+<unix/print.{native,byte}>: pkg_lwt
+<unix/print.{native,byte}>: pkg_lwt.unix
+<unix/print.{native,byte}>: pkg_cstruct
+<unix/print.{native,byte}>: pkg_lwt.syntax
+<unix/print.{native,byte}>: pkg_cstruct.syntax
+<unix/print.{native,byte}>: custom
 # Executable flows
-<flows/flows.{native,byte}>: use_capture
-<flows/flows.{native,byte}>: pkg_lwt
-<flows/flows.{native,byte}>: pkg_lwt.unix
-<flows/flows.{native,byte}>: pkg_cstruct
-<flows/flows.{native,byte}>: pkg_cstruct.syntax
-<flows/*.ml{,i}>: use_capture
-<flows/*.ml{,i}>: pkg_lwt
-<flows/*.ml{,i}>: pkg_lwt.unix
-<flows/*.ml{,i}>: pkg_cstruct
-<flows/*.ml{,i}>: pkg_cstruct.syntax
-<flows/flows.{native,byte}>: custom
+<unix/flows.{native,byte}>: use_capture
+<unix/flows.{native,byte}>: pkg_lwt
+<unix/flows.{native,byte}>: pkg_lwt.unix
+<unix/flows.{native,byte}>: pkg_cstruct
+<unix/flows.{native,byte}>: pkg_lwt.syntax
+<unix/flows.{native,byte}>: pkg_cstruct.lwt
+<unix/flows.{native,byte}>: pkg_cstruct.syntax
+<unix/*.ml{,i}>: use_capture
+<unix/*.ml{,i}>: pkg_lwt
+<unix/*.ml{,i}>: pkg_lwt.unix
+<unix/*.ml{,i}>: pkg_cstruct
+<unix/*.ml{,i}>: pkg_lwt.syntax
+<unix/*.ml{,i}>: pkg_cstruct.lwt
+<unix/*.ml{,i}>: pkg_cstruct.syntax
+<unix/flows.{native,byte}>: custom
 # Executable test
 <lib_test/test.{native,byte}>: use_capture
 <lib_test/test.{native,byte}>: pkg_lwt

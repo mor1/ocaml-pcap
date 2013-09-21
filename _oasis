@@ -38,20 +38,20 @@ Library mirage
 Executable print
   Build$: flag(unix)
   CompiledObject: best
-  Path: print
+  Path: unix
   MainIs: print.ml
   Custom: true
   Install: false
-  BuildDepends: lwt, lwt.unix, pcap-format
+  BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format
 
 Executable flows
   Build$: flag(unix)
   CompiledObject: best
-  Path: flows
+  Path: unix
   MainIs: flows.ml
   Custom: true
   Install: false
-  BuildDepends: lwt, lwt.unix, pcap-format
+  BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format, cstruct.lwt
 
 Executable test
   Path: lib_test
