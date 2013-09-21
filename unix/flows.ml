@@ -15,9 +15,37 @@
  *)
 
 open Operators
-open Pcap
 open Printf
-open Packet
+
+open Capture
+open Capture.Pcap
+open Capture.Packet
+
+
+let write fd buf = 
+  let s = Cstruct.to_string buf in
+  Unix.write fd s 0 (String.length s)
+
+let create_pcap filename fh = 
+  let buf = Cstruct.create Pcap.sizeof_pcap_header in
+  let open Pcap.LE in
+  set_pcap_header_magic_number buf fh.magic_number;
+  set_pcap_header_version_major buf fh.version_major;
+  set_pcap_header_version_minor buf fh.version_minor;
+  set_pcap_header_thiszone buf fh.timezone;
+  set_pcap_header_sigfigs buf fh.sigfigs;
+  set_pcap_header_snaplen buf fh.snaplen;
+  set_pcap_header_network buf fh.network;
+
+  try 
+    let fd = Unix.(openfile filename [O_WRONLY; O_CREAT; O_TRUNC] 0o644) in
+    let _ = write fd buf in
+    fd
+  with
+    | Unix.Unix_error (errno, func, param) ->
+      printf "%s %s %s\n%!" (Unix.error_message errno) func param;
+      failwith "DIE!"
+    
 
 module Unidir = struct
 
@@ -70,16 +98,29 @@ end
 module UniFlows = Map.Make(Unidir)  
 module BiFlows = Map.Make(Bidir)
 
+
+let flow_to_filename (src, srcpt, dst, dstpt, dir) = 
+  let open Bidir in
+  let src, srcpt, dst, dstpt = match dir with
+    | OUT -> src, srcpt, dst, dstpt
+    | BACK -> dst, dstpt, src, srcpt
+  in  
+  sprintf "x-%s.%d-%s.%d.pcap" (Ip4.ip_to_string src) srcpt (Ip4.ip_to_string dst) dstpt
+
 module Flowstate = struct
   type t = {
     mutable npkts: int;
+    fd: Unix.file_descr;
+    mutable pbuf: Capture.Packet.t list;
   }
 
   let to_string t = 
     sprintf "npkts:%d" t.npkts
 
-  let create f = 
+  let create f fh = 
     { npkts = 0;
+      fd = create_pcap (flow_to_filename f) fh;
+      pbuf = [];
     }
     
 end
@@ -88,12 +129,14 @@ module State = struct
   type t = {
     mutable npkts: int;
     mutable nflows: int;
+    mutable fh: Pcap.fh option;
     mutable biflows: Flowstate.t BiFlows.t;
   }
 
   let create () = {
     npkts = 0;
     nflows = 0;
+    fh = None;
     biflows = BiFlows.empty;
   }
 
@@ -122,7 +165,7 @@ let pkt_process st pkt =
 
   st.npkts <- st.npkts + 1;
   (match pkt with
-    | PCAP(h, ETH(eh, IP4(ih, TCP4(th, _)))) ->
+    | PCAP(h, ETH(eh, IP4(ih, TCP4(th, _))), buf) ->
       let t = Bidir.t ih th in
       let f = Bidir.f ih th in
       let fst = 
@@ -130,9 +173,12 @@ let pkt_process st pkt =
           BiFlows.find t st.biflows
         with Not_found -> 
           st.nflows <- st.nflows + 1;
-          Flowstate.create f
+          match st.fh with 
+            | None -> failwith "argh"
+            | Some fh -> Flowstate.create f fh
       in
       Flowstate.(fst.npkts <- fst.npkts + 1);
+      let _ = write fst.Flowstate.fd buf in
       st.biflows <- BiFlows.add t fst st.biflows
     | _ -> ()
   );
@@ -175,6 +221,7 @@ let parse st buf =
     | Some (header, packets) -> 
       let open Pcap in
       printf "### %s\n%!" (fh_to_string header);
+      st.State.fh <- Some header;
       let _ = Cstruct.fold pkt_process packets st in
       printf "npkts: %d\n" st.State.npkts;
       printf "nflows: %d == %d\n%!" st.State.nflows (BiFlows.cardinal st.State.biflows)
