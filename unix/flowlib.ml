@@ -157,9 +157,34 @@ module State = struct
       t.biflows 
 end
 
+let pkt_process_packed_flow st pkt = 
+  let open State in
+  if st.npkts mod 1_000_000 == 0 then
+    printf "npkts=%d nflows=%d\n%!" st.npkts st.nflows;
+
+  st.npkts <- st.npkts + 1;
+  (match pkt with
+    | PCAP(h, ETH(eh, IP4(ih, TCP4(th, _))), buf) ->
+      let t = Bidir.t ih th in
+      let f = Bidir.f ih th in
+      let fst =  
+        try
+          BiFlows.find t st.biflows
+        with Not_found -> 
+          st.nflows <- st.nflows + 1;
+          match st.fh with 
+            | None -> failwith "argh"
+            | Some fh -> Flowstate.create f fh
+      in
+      Flowstate.(fst.npkts <- fst.npkts + 1);
+      let _ = write fst.Flowstate.fd buf in
+      st.biflows <- BiFlows.add t fst st.biflows
+    | _ -> ()
+  );
+  st
 
 (** how to process each packet *)
-let pkt_process st pkt =
+let pkt_process_summary_flow st pkt =
   let open State in
   if st.npkts mod 1_000_000 == 0 then
     printf "npkts=%d nflows=%d\n%!" st.npkts st.nflows;
@@ -186,7 +211,7 @@ let pkt_process st pkt =
   st
 
 (** parse a buffer, with state *)
-let parse st buf =
+let parse st processor buf  =
   
   (** customise protocol demux to be as shallow as we can: ETH -> IP -> TCP ->
       DROP; not strictly necessary as it's hardly likely that doing a full demux
@@ -223,7 +248,7 @@ let parse st buf =
       let open Pcap in
       printf "### %s\n%!" (fh_to_string header);
       st.State.fh <- Some header;
-      let _ = Cstruct.fold pkt_process packets st in
+      let _ = Cstruct.fold processor packets st in
       printf "npkts: %d\n" st.State.npkts;
       printf "nflows: %d == %d\n%!" st.State.nflows (BiFlows.cardinal st.State.biflows)
 

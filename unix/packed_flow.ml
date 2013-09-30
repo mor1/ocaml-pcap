@@ -19,9 +19,66 @@ open Capture
 open Capture.Pcap
 open Capture.Packet
 
+open Printf
+open Flowlib
+
+
+type var_int = int  (* Improve for more compact representation*)
+
+
+
+module Packedflow = struct
+    type pflow_pkt = {
+        time_delta: var_int;
+        ack_delta: var_int;
+        seq_delta: var_int;
+        length: int;
+        flags: int;
+    }
+
+    type t = {
+        mutable header: Pcap.fh option;
+        mutable pkts: pflow_pkt list;
+        mutable timenow: int;  (*Time of last packet*)
+        mutable acknow: int;   (*last ack no*)
+        mutable seqnow: int;   (*last seq no*)
+        mutable totpkts: int;  (* Num packets*)
+        mutable totbytes: int;   (* Num bytes *)
+        mutable tottime: int;   (* Total time taken *)
+    }
+    
+    let create () = {
+        header= None;
+        pkts= [];
+        totpkts= 0;
+        totbytes= 0;
+        tottime= 0;
+        seqnow= 0;
+        acknow= 0;
+        timenow= 0
+    }
+    
+    let addPkt pflow fhe = 
+        pflow.totpkts <-pflow.totpkts+1;
+        match pflow.header with 
+            | None -> pflow.header <- fhe;
+            | _ -> pflow.tottime<-pflow.tottime+1;
+            
+end
+
+
 (** entry point *)
 let _ =
+
+  let st = Flowlib.State.create () in
   let files = ref [] in
   Arg.parse []
     (fun x -> files := x :: !files)
     "Dump the contents of pcap files";
+
+  let files = List.rev !files in
+    List.iter (fun file -> file |> Flowlib.filename_to_buf |> Flowlib.parse st pkt_process_summary_flow) files;
+
+  State.dump st
+
+  
