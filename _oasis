@@ -2,7 +2,7 @@ OASISFormat: 0.3
 Name:        pcap
 Version:     0.4
 Synopsis:    Packet capture tools
-Authors:     Richard Mortier, Richard Clegg
+Authors:     Anil Madhavapeddy, Dave Scott, Richard Mortier, Richard Clegg
 License:     ISC
 Plugins:     META (0.2)
 BuildTools:  ocamlbuild
