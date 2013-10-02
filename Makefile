@@ -42,4 +42,4 @@ reinstall: setup.ml
 clean:
 	ocamlbuild -clean
 	$(RM) setup.data setup.log
-	$(RM) flows.native print.native
+	$(RM) flows.native print.native packed_flow.native
