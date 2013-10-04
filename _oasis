@@ -2,7 +2,7 @@ OASISFormat: 0.3
 Name:        pcap
 Version:     0.4
 Synopsis:    Packet capture tools
-Authors:     Anil Madhavapeddy, Dave Scott, Richard Mortier
+Authors:     Anil Madhavapeddy, Dave Scott, Richard Mortier, Richard Clegg
 License:     ISC
 Plugins:     META (0.2)
 BuildTools:  ocamlbuild
@@ -49,6 +49,15 @@ Executable flows
   CompiledObject: best
   Path: unix
   MainIs: flows.ml
+  Custom: true
+  Install: false
+  BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format, cstruct.lwt
+
+Executable packed_flow
+  Build$: flag(unix)
+  CompiledObject: best
+  Path: unix
+  MainIs: packed_flow.ml
   Custom: true
   Install: false
   BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format, cstruct.lwt
