@@ -97,6 +97,7 @@ end
 
 module UniFlows = Map.Make(Unidir)  
 module BiFlows = Map.Make(Bidir)
+module PackedBiFlows = Map.Make(Bidir)
 
 
 let flow_to_filename (src, srcpt, dst, dstpt, dir) = 
@@ -125,6 +126,88 @@ module Flowstate = struct
     
 end
 
+
+(*type var_int = int   Improve for more compact representation*)
+
+module PackedFlowstate = struct
+    
+    type pflow_pkt = {
+        time_delta: int;
+        ack_delta: int;
+        seq_delta: int;
+        length: int;
+        flags: int;
+    }
+    
+    
+    type t = {
+        mutable header: Pcap.fh option;
+        mutable pkts: pflow_pkt list;
+        mutable timenow: int;  (*Time of last packet*)
+        mutable acknow: int;   (*last ack no*)
+        mutable seqnow: int;   (*last seq no*)
+        mutable totpkts: int;  (* Num packets*)
+        mutable totbytes: int;   (* Num bytes *)
+        mutable tottime: int;   (* Total time taken *)
+    }
+    
+    let to_string t = 
+        sprintf "npkts:%d" t.totpkts
+    
+    
+    let create f fh = {
+        header= Some fh;
+        pkts= [];
+        totpkts= 0;
+        totbytes= 0;
+        tottime= 0;
+        seqnow= 0;
+        acknow= 0;
+        timenow= 0
+    }
+    
+    let add pflow fhe = 
+        pflow.totpkts <-pflow.totpkts+1;
+        printf "Adding flow";
+        match pflow.header with 
+            | None -> pflow.header <- fhe;
+            | _ -> pflow.tottime<-pflow.tottime+1;
+            
+end
+
+
+module PackedState = struct
+  type t = {
+    mutable npkts: int;
+    mutable nflows: int;
+    mutable fh: Pcap.fh option;
+    mutable biflows: PackedFlowstate.t PackedBiFlows.t;
+  }
+
+  let create () = {
+    npkts = 0;
+    nflows = 0;
+    fh = None;
+    biflows = PackedBiFlows.empty;
+  }
+
+  let to_string t = 
+    let hdr = sprintf "packed npkts: %d\nnflows: %d\n" t.npkts t.nflows in
+    PackedBiFlows.fold
+      (fun f fst acc -> 
+        sprintf "%s%s: %s\n" acc (Bidir.to_string f) (PackedFlowstate.to_string fst)
+      ) 
+      t.biflows hdr
+      
+  let dump t = 
+    printf "packed npkts: %d\nnflows: %d\n" t.npkts t.nflows;
+    PackedBiFlows.iter
+      (fun f fst -> 
+        printf "%s: %s\n" (Bidir.to_string f) (PackedFlowstate.to_string fst)
+      ) 
+      t.biflows 
+end
+
 module State = struct
   type t = {
     mutable npkts: int;
@@ -132,7 +215,7 @@ module State = struct
     mutable fh: Pcap.fh option;
     mutable biflows: Flowstate.t BiFlows.t;
   }
-
+  
   let create () = {
     npkts = 0;
     nflows = 0;
@@ -158,7 +241,7 @@ module State = struct
 end
 
 let pkt_process_packed_flow st pkt = 
-  let open State in
+  let open PackedState in
   if st.npkts mod 1_000_000 == 0 then
     printf "npkts=%d nflows=%d\n%!" st.npkts st.nflows;
 
@@ -174,41 +257,17 @@ let pkt_process_packed_flow st pkt =
           st.nflows <- st.nflows + 1;
           match st.fh with 
             | None -> failwith "argh"
-            | Some fh -> Flowstate.create f fh
+            | Some fh -> PackedFlowstate.create f fh
       in
-      Flowstate.(fst.npkts <- fst.npkts + 1);
-      let _ = write fst.Flowstate.fd buf in
-      st.biflows <- BiFlows.add t fst st.biflows
+      PackedFlowstate.(fst.totpkts <- fst.totpkts + 1);
+      st.biflows <- PackedBiFlows.add t fst st.biflows
     | _ -> ()
   );
   st
 
-(** how to process each packet *)
-let pkt_process_summary_flow st pkt =
-  let open State in
-  if st.npkts mod 1_000_000 == 0 then
-    printf "npkts=%d nflows=%d\n%!" st.npkts st.nflows;
-
-  st.npkts <- st.npkts + 1;
-  (match pkt with
-    | PCAP(h, ETH(eh, IP4(ih, TCP4(th, _))), buf) ->
-      let t = Bidir.t ih th in
-      let f = Bidir.f ih th in
-      let fst = 
-        try
-          BiFlows.find t st.biflows
-        with Not_found -> 
-          st.nflows <- st.nflows + 1;
-          match st.fh with 
-            | None -> failwith "argh"
-            | Some fh -> Flowstate.create f fh
-      in
-      Flowstate.(fst.npkts <- fst.npkts + 1);
-      let _ = write fst.Flowstate.fd buf in
-      st.biflows <- BiFlows.add t fst st.biflows
-    | _ -> ()
-  );
-  st
+module Genstate = struct
+type genstate = Full of State.t | Part of PackedState.t
+end
 
 (** parse a buffer, with state *)
 let parse st processor buf  =
@@ -245,12 +304,24 @@ let parse st processor buf  =
       fprintf stderr "not a pcap file (failed to read magic number in header)\n%!"
         
     | Some (header, packets) -> 
-      let open Pcap in
+            let open Pcap in
       printf "### %s\n%!" (fh_to_string header);
-      st.State.fh <- Some header;
+      match st with
+        | Genstate.Part st -> st.PackedState.fh <- Some header
+        | Genstate.Full st -> st.State.fh <- Some header
+(*
       let _ = Cstruct.fold processor packets st in
-      printf "npkts: %d\n" st.State.npkts;
+      match st with
+         | Genstate.Part st -> printf "npkts: %d\n" 1
+         | Genstate.Full st-> printf "npkts: %d\n" 1
+*)
+      
+
+
+(*
       printf "nflows: %d == %d\n%!" st.State.nflows (BiFlows.cardinal st.State.biflows)
+*)
+
 
 (** convert [filename] string to a buffer by opening and mapping file *)
 let filename_to_buf filename = 
