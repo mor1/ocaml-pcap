@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 8fc10f15644db049337575504af9fe65) *)
+(* DO NOT EDIT (digest: 1d79ccf63a1972d67e150ff26cdf0e8a) *)
 module OASISGettext = struct
 (* # 21 "src/oasis/OASISGettext.ml" *)
 
@@ -478,7 +478,7 @@ open Ocamlbuild_plugin;;
 let package_default =
   {
      MyOCamlbuildBase.lib_ocaml =
-       [("capture", ["lib"]); ("mirage", ["mirage"])];
+       [("capture", ["lib"]); ("mirage", ["mirage"]); ("flowlib", ["unix"])];
      lib_c = [];
      flags = [];
      includes =

@@ -26,6 +26,7 @@ Library capture
     Pcap
   BuildDepends: cstruct ( >= 0.5.0 ), cstruct.syntax
 
+
 Library mirage
   Build$: flag(mirage)
   CompiledObject: best
@@ -35,6 +36,14 @@ Library mirage
   Modules: Pcap_mirage, Lwt_bounded_stream
   BuildDepends: mirage-net, pcap-format, lwt, lwt.syntax
 
+Library flowlib
+  Build$: flag(unix)
+  CompiledObject: best
+  Path: unix
+  Modules: Flowlib
+  BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format, cstruct.lwt
+
+
 Executable print
   Build$: flag(unix)
   CompiledObject: best
@@ -43,6 +52,7 @@ Executable print
   Custom: true
   Install: false
   BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format
+
 
 Executable flows
   Build$: flag(unix)
@@ -60,7 +70,7 @@ Executable packed_flow
   MainIs: packed_flow.ml
   Custom: true
   Install: false
-  BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format, cstruct.lwt
+  BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format, cstruct.lwt, flowlib
 
 Executable copy
   Build$: flag(unix)
