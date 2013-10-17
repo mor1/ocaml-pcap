@@ -29,14 +29,14 @@ open Capture
 open Capture.Pcap
 open Printf
 
-let print_all acc (PCAP(h, p, _)) = 
-  printf "%d: PCAP(%s)%s\n%!" acc (to_str h) (Packet.to_str p); 
+let print_all acc (PCAP(h, p, _)) =
+  printf "%d: PCAP(%s)%s\n%!" acc (to_str h) (Packet.to_str p);
   acc+1
 
 let print_tcp_not_port_443 acc (PCAP(h, p, _)) =
   let open Packet in
   match p with
-    | ETH(_, IP4(_, TCP4(th, _))) 
+    | ETH(_, IP4(_, TCP4(th, _)))
         when th.Tcp4.dstpt != 443 && th.Tcp4.srcpt != 443 -> (
           printf "%d: PCAP(%s)%s\n%!" acc (Pcap.to_string h) (Packet.to_str p);
           acc+1
@@ -53,9 +53,9 @@ let process processf filename =
   (* cheap'n'cheerful for now-- assume capture from an ethernet interface, and
      stateless demux *)
   match Pcap.iter buf (Demux.(eth_demux () ethertype_demux)) with
-    | None -> 
+    | None ->
       fprintf stderr "not a pcap file (failed to read magic number in header)\n%!"
-    | Some (pcap_header, pcap_packets) -> 
+    | Some (pcap_header, pcap_packets) ->
       let open Pcap in
       printf "### %s\n%!" (fh_to_string pcap_header);
       let num_packets = Cstruct.fold processf pcap_packets 0 in
