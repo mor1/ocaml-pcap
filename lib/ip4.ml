@@ -40,10 +40,10 @@ cenum port {
   RTSP     =   554;
   RWS      =  1745;
   MSN      =  1863;
-  XMPP_CLT =  5222; 
-  XMPP_SVR =  5269 
+  XMPP_CLT =  5222;
+  XMPP_SVR =  5269
 } as uint16_t
- 
+
 let is_wellknown_port p  = ((    0 <= p) && (p <=  1023))
 let is_registered_port p = (( 1024 <= p) && (p <= 49151))
 let is_ephemeral_port p  = ((49152 <= p) && (p <= 65535))
@@ -85,7 +85,7 @@ type h = {
   dst: int32;
 }
 
-let h buf = 
+let h buf =
   { ver = get_ip4_ver buf;
     hlen = get_ip4_hlen buf;
     tos = get_ip4_tos buf;
@@ -100,20 +100,20 @@ let h buf =
     dst = get_ip4_dst buf;
   }
 
-let flags_to_string f = 
+let flags_to_string f =
   sprintf "%s%s"
     (if is_df f then "DF" else "..")
     (if is_mf f then "MF" else "..")
 
 let ip_to_string = Cstruct.ipv4_to_string
 
-let to_str h = 
+let to_str h =
   let proto = match int_to_protocol h.proto with
     | None -> sprintf "#%d" h.proto
     | Some e -> protocol_to_string e
   in
   sprintf "%s,%s,%s, %d, %s,[%s]"
-    (ip_to_string h.src) (ip_to_string h.dst) proto h.len 
+    (ip_to_string h.src) (ip_to_string h.dst) proto h.len
     (flags_to_string h.flags)
     "OPTS-NOT-PARSED"
 

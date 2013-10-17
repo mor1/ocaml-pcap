@@ -39,7 +39,7 @@ type h = {
   ethertype: uint16;
 }
 
-let h buf = 
+let h buf =
   { dst = get_ethernet_dst buf;
     src = get_ethernet_src buf;
     ethertype = get_ethernet_ethertype buf;
@@ -49,18 +49,18 @@ let mac_to_string mac =
   let i n = get_uint8 mac n in
   sprintf "%.2x:%.2x:%.2x:%.2x:%.2x:%.2x"
     (i 0) (i 1) (i 2) (i 3) (i 4) (i 5)
-  
-let to_str h = 
+
+let to_str h =
   let ethertype = match int_to_ethertype h.ethertype with
     | None -> sprintf "#%d" h.ethertype
     | Some e -> ethertype_to_string e
   in
   sprintf "%s,%s,%s" (mac_to_string h.src) (mac_to_string h.dst) ethertype
 
-let to_string h = 
+let to_string h =
   let ethertype = match int_to_ethertype h.ethertype with
     | None -> "###"
     | Some e -> ethertype_to_string e
   in
-  sprintf "src:%s dst:%s type:%s" 
+  sprintf "src:%s dst:%s type:%s"
     (mac_to_string h.src) (mac_to_string h.dst) ethertype

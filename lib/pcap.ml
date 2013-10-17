@@ -151,10 +151,10 @@ let fh_to_str fh =
     fh.version_major fh.version_minor (string_of_endian fh.endian)
     fh.timezone fh.sigfigs fh.snaplen fh.network
 
-let fh_to_string fh = 
+let fh_to_string fh =
   sprintf "magic_number:%.8lx endian:%s version_major:%d version_minor:%d \
            timezone:%lu sigfigs:%lu snaplen:%lu lltype:%lu"
-    fh.magic_number (string_of_endian fh.endian) fh.version_major fh.version_minor 
+    fh.magic_number (string_of_endian fh.endian) fh.version_major fh.version_minor
     fh.timezone fh.sigfigs fh.snaplen fh.network
 
 type h = {
@@ -182,10 +182,10 @@ let iter buf demuxf =
   in
   match pcap_hdr with
     | None -> None
-    | Some h -> 
+    | Some h ->
       let module H = (val h : HDR) in
-      
-      let h buf = 
+
+      let h buf =
         { secs = H.get_pcap_packet_ts_sec buf;
           usecs = H.get_pcap_packet_ts_usec buf;
           caplen = H.get_pcap_packet_incl_len buf;
@@ -193,7 +193,7 @@ let iter buf demuxf =
         }
       in
 
-      let fh = 
+      let fh =
         { magic_number = H.get_pcap_header_magic_number buf;
           endian = H.endian;
           version_major = H.get_pcap_header_version_major buf;
@@ -206,7 +206,7 @@ let iter buf demuxf =
       in
       let _, buf = Cstruct.split buf sizeof_pcap_header in
       Some (
-        fh, Cstruct.iter 
+        fh, Cstruct.iter
           (fun buf -> Some (sizeof_pcap_packet + (Int32.to_int (H.get_pcap_packet_incl_len buf))))
           (fun buf -> PCAP(h buf, demuxf (Cstruct.shift buf sizeof_pcap_packet), buf))
           buf

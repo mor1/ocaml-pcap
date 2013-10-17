@@ -13,16 +13,16 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
-  
-open Printf
-open Operators 
 
-type t = 
+open Printf
+open Operators
+
+type t =
   | ETH  of Ethernet.h * t
   | IP4 of Ip4.h * t
   | TCP4  of Tcp4.h * t
   | UDP4  of Udp4.h * t
-      
+
   | DHCP of Dhcp4.t
   | ARP of Arp.t
 
@@ -31,36 +31,36 @@ type t =
   | DROP
 
 let to_str pkt =
-  let rec aux pkt str =  
+  let rec aux pkt str =
     match pkt with
-      | ETH (h, p) -> 
+      | ETH (h, p) ->
         let s = sprintf "%s|ETH(%s)" str (Ethernet.to_str h) in aux p s
-      | IP4 (h, p)   -> 
+      | IP4 (h, p)   ->
         let s = sprintf "%s|IP4(%s)" str (Ip4.to_str h) in aux p s
-      | TCP4 (h, p)  -> 
+      | TCP4 (h, p)  ->
         let s = sprintf "%s|TCP4(%s)" str (Tcp4.to_str h) in aux p s
-      | UDP4 (h, p)  -> 
+      | UDP4 (h, p)  ->
         let s = sprintf "%s|UDP4(%s)" str (Udp4.to_str h) in aux p s
 
       | DHCP p -> sprintf "%s|%s" str (Dhcp4.to_str p)
       | ARP p -> sprintf "%s|%s" str (Arp.to_str p)
 
-      | DATA bs -> sprintf "%s|DATA(.)" str 
+      | DATA bs -> sprintf "%s|DATA(.)" str
       | ERROR bs -> sprintf "%s|ERR(%s)" str (buf_to_string "\n\t" bs)
       | DROP -> sprintf "%s|." str
   in
   aux pkt ""
 
 let to_string pkt =
-  let rec aux pkt str =  
+  let rec aux pkt str =
     match pkt with
-      | ETH (h, p) -> 
+      | ETH (h, p) ->
         let s = sprintf "%s|ETH(%s)" str (Ethernet.to_string h) in aux p s
-      | IP4 (h, p)   -> 
+      | IP4 (h, p)   ->
         let s = sprintf "%s|IP4(%s)" str (Ip4.to_string h) in aux p s
-      | TCP4 (h, p)  -> 
+      | TCP4 (h, p)  ->
         let s = sprintf "%s|TCP4(%s)" str (Tcp4.to_string h) in aux p s
-      | UDP4 (h, p)  -> 
+      | UDP4 (h, p)  ->
         let s = sprintf "%s|UDP4(%s)" str (Udp4.to_string h) in aux p s
 
       | DHCP p -> sprintf "%s|%s" str (Dhcp4.to_string p)
@@ -71,4 +71,3 @@ let to_string pkt =
       | DROP -> sprintf "%s|." str
   in
   aux pkt ""
- 

@@ -28,10 +28,10 @@ type h = {
   srcpt: int;
   dstpt: int;
   len: int;
-  xsum: int  
+  xsum: int
 }
 
-let h buf = 
+let h buf =
   { srcpt = get_udp4_srcpt buf;
     dstpt = get_udp4_dstpt buf;
     len = get_udp4_len buf;

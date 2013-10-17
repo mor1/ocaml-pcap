@@ -29,25 +29,25 @@ let data_demux buf = DATA buf
 
 (** demuxf: 'st -> 'proto_demuxf -> buf -> Packet.t *)
 
-let udp4_demux st port_demux buf = 
+let udp4_demux st port_demux buf =
   let open Udp4 in
   let uh = h buf in
   let buf = Cstruct.shift buf sizeof_udp4 in
   UDP4(uh, (port_demux st uh) buf)
-   
-let tcp4_demux st port_demux buf = 
+
+let tcp4_demux st port_demux buf =
   let open Tcp4 in
   let th = h buf in
   let buf = Cstruct.shift buf sizeof_tcp4 in
   TCP4(th, (port_demux st th) buf)
 
-let ip_demux st ipproto_demux buf = 
+let ip_demux st ipproto_demux buf =
   let open Ip4 in
   let ih = h buf in
   let buf = Cstruct.shift buf sizeof_ip4 in
   IP4(ih, (ipproto_demux st ih) buf)
 
-let eth_demux st ethertype_demux buf = 
+let eth_demux st ethertype_demux buf =
   let open Ethernet in
   let eh = h buf in
   let buf = Cstruct.shift buf sizeof_ethernet in
@@ -71,7 +71,7 @@ let tcp4_port_demux st th =
     | Some p -> match p with
         | _ -> data_demux
 
-let ipproto_demux st ih = 
+let ipproto_demux st ih =
   let open Ip4 in
   match int_to_protocol ih.proto with
     | None -> data_demux
@@ -80,7 +80,7 @@ let ipproto_demux st ih =
         | TCP -> tcp4_demux st tcp4_port_demux
         | _ -> data_demux
 
-let ethertype_demux st eh = 
+let ethertype_demux st eh =
   let open Ethernet in
   match int_to_ethertype eh.ethertype with
     | None -> data_demux

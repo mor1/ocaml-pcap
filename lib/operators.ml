@@ -47,16 +47,16 @@ let (>>>) x y = Int32.shift_right_logical x y
 let (>>>>) x y = Int64.shift_right_logical x y
 
 (** Format `Cstruct.t` *)
-let buf_to_string sep buf = 
+let buf_to_string sep buf =
   let open Printf in
   let line_len = 16 in
-  
-  let line bs = 
+
+  let line bs =
     let line = ref "" in
     for i = 0 to (min line_len (Cstruct.len bs)) - 1do
       if i > 0 && i mod 8 == 0 then line := !line ^ " ";
       let c = Cstruct.get_uint8 bs i in
-      line := 
+      line :=
         if (Char.code ' ' <= c) && (c <= Char.code '~') then
           sprintf "%s %c." !line (Char.chr c)
         else
@@ -64,15 +64,15 @@ let buf_to_string sep buf =
     done;
     !line
   in
-  
+
   let rec fold f acc = function
-    | buf when Cstruct.len buf < line_len -> 
+    | buf when Cstruct.len buf < line_len ->
       sprintf "%s%s%s" acc sep (line buf)
-    | buf -> 
+    | buf ->
       fold f (f acc buf) (Cstruct.shift buf line_len)
   in
-  
-  fold 
+
+  fold
     (fun a v -> sprintf "%s%s%s" a sep (line v))
     ""
     buf

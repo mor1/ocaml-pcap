@@ -63,7 +63,7 @@ type h = {
   xsum: int;
 }
 
-let h buf = 
+let h buf =  
   { typ = get_icmp_typ buf;
     code = get_icmp_code buf;
     xsum = get_icmp_xsum buf;

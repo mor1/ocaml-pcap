@@ -54,7 +54,7 @@ type h = {
   dpaddr: int32;
 }
 
-let h buf = 
+let h buf =
   { hw = get_arp_hw buf;
     pro = get_arp_pro buf;
     hlen = get_arp_hlen buf;
@@ -66,10 +66,10 @@ let h buf =
     dpaddr = get_arp_dpaddr buf;
   }
 
-let h_to_str h = 
+let h_to_str h =
   sprintf ""
 
-let h_to_string h = 
+let h_to_string h =
   let hw = match int_to_hw h.hw with
     | None -> sprintf "#%d" h.hw
     | Some v -> hw_to_string v
@@ -84,10 +84,10 @@ let h_to_string h =
     (Ethernet.mac_to_string h.shaddr) (Ip4.ip_to_string h.spaddr)
     (Ethernet.mac_to_string h.dhaddr) (Ip4.ip_to_string h.dpaddr)
 
-type p = 
+type p =
   | UNKNOWN of Cstruct.t
 type t = h * p
 
 let to_str (h, UNKNOWN p) = sprintf "ARP(%s)" (h_to_str h)
-let to_string (h, UNKNOWN p) = 
+let to_string (h, UNKNOWN p) =
   sprintf "ARP(%s)|%s" (h_to_string h) (buf_to_string "\n\t" p)

@@ -43,7 +43,7 @@ type h = {
 let get_tcp4_offset buf = ((get_tcp4_flagoff buf) land 0xf000) lsr 12
 let get_tcp4_flags buf = (get_tcp4_flagoff buf) land 0x003f
 
-let h buf = 
+let h buf =
   {  srcpt = get_tcp4_srcpt buf;
      dstpt = get_tcp4_dstpt buf;
      seqno = get_tcp4_seqno buf;
@@ -62,16 +62,16 @@ let is_psh fs = fs land 0x08 <> 0
 let is_ack fs = fs land 0x10 <> 0
 let is_urg fs = fs land 0x20 <> 0
 
-let flags_to_string flags = 
+let flags_to_string flags =
   sprintf "%s%s%s%s%s%s"
     (if (is_fin flags) then "F" else ".")
     (if (is_syn flags) then "S" else ".")
     (if (is_rst flags) then "R" else ".")
     (if (is_psh flags) then "P" else ".")
     (if (is_ack flags) then "A" else ".")
-    (if (is_urg flags) then "U" else ".")  
+    (if (is_urg flags) then "U" else ".")
 
-let to_str h = 
+let to_str h =
   sprintf "%d,%d,%s"
     h.srcpt h.dstpt (flags_to_string h.flags)
 

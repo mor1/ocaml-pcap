@@ -30,7 +30,7 @@ cstruct dhcp4 {
   uint32_t yiaddr;
   uint32_t siaddr;
   uint32_t giaddr;
-  
+
   uint8_t chaddr[16];
   uint8_t sname[64];
   uint8_t file[128]
@@ -74,13 +74,13 @@ let h buf = {
   file = get_dhcp4_file buf;
 }
 
-let flags_to_string f = 
+let flags_to_string f =
   let is_bcast f = f land 0x8000 <> 0 in
   sprintf "%s" (if is_bcast f then "B" else ".")
 
 let h_to_str h =
    sprintf "%d,%d,%d,%d, %08lx,%u,%s, %s,%s,%s,%s, '%s'"
-     h.op h.htype h.hlen h.hops h.xid h.secs (flags_to_string h.flags)    
+     h.op h.htype h.hlen h.hops h.xid h.secs (flags_to_string h.flags)
     (Ip4.ip_to_string h.ciaddr) (Ip4.ip_to_string h.yiaddr)
     (Ip4.ip_to_string h.siaddr) (Ip4.ip_to_string h.giaddr)
     (Ethernet.mac_to_string h.chaddr)
@@ -96,10 +96,10 @@ let h_to_string h =
     (buf_to_string " " h.sname)
     (buf_to_string " " h.file)
 
-type p = 
+type p =
   | UNKNOWN of Cstruct.t
 type t = h * p
 
 let to_str (h, UNKNOWN p) = sprintf "DHCP(%s)" (h_to_str h)
-let to_string (h, UNKNOWN p) = 
+let to_string (h, UNKNOWN p) =
   sprintf "DHCP(%s)|%s" (h_to_string h) (buf_to_string "\n\t" p)
