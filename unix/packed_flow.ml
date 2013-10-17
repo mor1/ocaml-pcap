@@ -19,17 +19,16 @@ open Printf
 
 (** entry point *)
 let _ =
-	let open Flowlib in
-	let open Flowlib.PackedState in
-	let pf = Flowlib.PackedState.create() in
-	let st = Genstate.Packed pf in
-	let files = ref [] in
-	Arg.parse []
-		(fun x -> files := x :: !files)
-		"Dump the contents of pcap files";
+  let open Flowlib in
+  let open Flowlib.PackedState in
+  let pf = Flowlib.PackedState.create() in
+  let st = Genstate.Packed pf in
+  let files = ref [] in
+  Arg.parse []
+    (fun x -> files := x :: !files)
+    "Dump the contents of pcap files";
 
-	let files = List.rev !files in
-	List.iter (fun file -> file |> Flowlib.filename_to_buf |> Flowlib.parse st ) files;
+  let files = List.rev !files in
+  List.iter (fun file -> file |> Flowlib.filename_to_buf |> Flowlib.parse st ) files;
 
-(* Flowlib.Genstate.dump st                                                                                     *)
-
+  (* Flowlib.Genstate.dump st                                                                                     *)

@@ -39,9 +39,9 @@ let create_pcap filename fh =
     let _ = write fd buf in
     fd
   with
-    | Unix.Unix_error (errno, func, param) ->
-      printf "%s %s %s\n%!" (Unix.error_message errno) func param;
-      failwith "DIE!"
+  | Unix.Unix_error (errno, func, param) ->
+    printf "%s %s %s\n%!" (Unix.error_message errno) func param;
+    failwith "DIE!"
 
 
 module Unidir = struct
@@ -86,8 +86,8 @@ module Bidir = struct
 
   let f_to_string (tx, txpt, rx, rxpt, dir) =
     let tx, txpt, rx, rxpt = match dir with
-        | OUT -> ((Ip4.ip_to_string tx), txpt, (Ip4.ip_to_string rx), rxpt)
-        | BACK -> ((Ip4.ip_to_string rx), rxpt, (Ip4.ip_to_string tx), txpt)
+      | OUT -> ((Ip4.ip_to_string tx), txpt, (Ip4.ip_to_string rx), rxpt)
+      | BACK -> ((Ip4.ip_to_string rx), rxpt, (Ip4.ip_to_string tx), txpt)
     in
     sprintf "%s/%d -> %s/%d" tx txpt rx rxpt
 end
@@ -128,47 +128,47 @@ end
 
 module PackedFlowstate = struct
 
-    type pflow_pkt = {
-        time_delta: int;
-        ack_delta: int;
-        seq_delta: int;
-        length: int;
-        flags: int;
-    }
+  type pflow_pkt = {
+    time_delta: int;
+    ack_delta: int;
+    seq_delta: int;
+    length: int;
+    flags: int;
+  }
 
 
-    type t = {
-        mutable header: Pcap.fh option;
-        mutable pkts: pflow_pkt list;
-        mutable timenow: int;  (*Time of last packet*)
-        mutable acknow: int;   (*last ack no*)
-        mutable seqnow: int;   (*last seq no*)
-        mutable totpkts: int;  (* Num packets*)
-        mutable totbytes: int;   (* Num bytes *)
-        mutable tottime: int;   (* Total time taken *)
-    }
+  type t = {
+    mutable header: Pcap.fh option;
+    mutable pkts: pflow_pkt list;
+    mutable timenow: int;  (*Time of last packet*)
+    mutable acknow: int;   (*last ack no*)
+    mutable seqnow: int;   (*last seq no*)
+    mutable totpkts: int;  (* Num packets*)
+    mutable totbytes: int;   (* Num bytes *)
+    mutable tottime: int;   (* Total time taken *)
+  }
 
-    let to_string t =
-        sprintf "npkts:%d" t.totpkts
+  let to_string t =
+    sprintf "npkts:%d" t.totpkts
 
 
-    let create f fh = {
-        header = Some fh;
-        pkts = [];
-        totpkts = 0;
-        totbytes = 0;
-        tottime = 0;
-        seqnow = 0;
-        acknow = 0;
-        timenow = 0
-    }
+  let create f fh = {
+    header = Some fh;
+    pkts = [];
+    totpkts = 0;
+    totbytes = 0;
+    tottime = 0;
+    seqnow = 0;
+    acknow = 0;
+    timenow = 0
+  }
 
-    let add pflow fhe =
-        pflow.totpkts <- pflow.totpkts +1;
-        printf "Adding flow";
-        match pflow.header with
-            | None -> pflow.header <- fhe;
-            | _ -> pflow.tottime <- pflow.tottime +1;
+  let add pflow fhe =
+    pflow.totpkts <- pflow.totpkts +1;
+    printf "Adding flow";
+    match pflow.header with
+    | None -> pflow.header <- fhe;
+    | _ -> pflow.tottime <- pflow.tottime +1;
 
 end
 
@@ -192,7 +192,7 @@ module PackedState = struct
     let hdr = sprintf "packed npkts: %d\nnflows: %d\n" t.npkts t.nflows in
     PackedBiFlows.fold
       (fun f fst acc ->
-        sprintf "%s%s: %s\n" acc (Bidir.to_string f) (PackedFlowstate.to_string fst)
+         sprintf "%s%s: %s\n" acc (Bidir.to_string f) (PackedFlowstate.to_string fst)
       )
       t.biflows hdr
 
@@ -200,7 +200,7 @@ module PackedState = struct
     printf "packed npkts: %d\nnflows: %d\n" t.npkts t.nflows;
     PackedBiFlows.iter
       (fun f fst ->
-        printf "%s: %s\n" (Bidir.to_string f) (PackedFlowstate.to_string fst)
+         printf "%s: %s\n" (Bidir.to_string f) (PackedFlowstate.to_string fst)
       )
       t.biflows
 end
@@ -224,7 +224,7 @@ module State = struct
     let hdr = sprintf "npkts: %d\nnflows: %d\n" t.npkts t.nflows in
     BiFlows.fold
       (fun f fst acc ->
-        sprintf "%s%s: %s\n" acc (Bidir.to_string f) (Flowstate.to_string fst)
+         sprintf "%s%s: %s\n" acc (Bidir.to_string f) (Flowstate.to_string fst)
       )
       t.biflows hdr
 
@@ -232,7 +232,7 @@ module State = struct
     printf "npkts: %d\nnflows: %d\n" t.npkts t.nflows;
     BiFlows.iter
       (fun f fst ->
-        printf "%s: %s\n" (Bidir.to_string f) (Flowstate.to_string fst)
+         printf "%s: %s\n" (Bidir.to_string f) (Flowstate.to_string fst)
       )
       t.biflows
 end
@@ -245,22 +245,22 @@ let pkt_process_flow st pkt =
 
   st.npkts <- st.npkts + 1;
   (match pkt with
-    | PCAP(h, ETH(eh, IP4(ih, TCP4(th, _))), buf) ->
-      let t = Bidir.t ih th in
-      let f = Bidir.f ih th in
-      let fst =
-        try
-          BiFlows.find t st.biflows
-        with Not_found ->
-          st.nflows <- st.nflows + 1;
-          match st.fh with
-            | None -> failwith "argh"
-            | Some fh -> Flowstate.create f fh
-      in
-      Flowstate.(fst.npkts <- fst.npkts + 1);
-      let _ = write fst.Flowstate.fd buf in
-      st.biflows <- BiFlows.add t fst st.biflows
-    | _ -> ()
+   | PCAP(h, ETH(eh, IP4(ih, TCP4(th, _))), buf) ->
+     let t = Bidir.t ih th in
+     let f = Bidir.f ih th in
+     let fst =
+       try
+         BiFlows.find t st.biflows
+       with Not_found ->
+         st.nflows <- st.nflows + 1;
+         match st.fh with
+         | None -> failwith "argh"
+         | Some fh -> Flowstate.create f fh
+     in
+     Flowstate.(fst.npkts <- fst.npkts + 1);
+     let _ = write fst.Flowstate.fd buf in
+     st.biflows <- BiFlows.add t fst st.biflows
+   | _ -> ()
   );
   st
 
@@ -271,26 +271,26 @@ let pkt_process_packed_flow st pkt =
 
   st.npkts <- st.npkts + 1;
   (match pkt with
-    | PCAP(h, ETH(eh, IP4(ih, TCP4(th, _))), buf) ->
-      let t = Bidir.t ih th in
-      let f = Bidir.f ih th in
-      let fst =
-        try
-          BiFlows.find t st.biflows
-        with Not_found ->
-          st.nflows <- st.nflows + 1;
-          match st.fh with
-            | None -> failwith "argh"
-            | Some fh -> PackedFlowstate.create f fh
-      in
-      PackedFlowstate.(fst.totpkts <- fst.totpkts + 1);
-      st.biflows <- PackedBiFlows.add t fst st.biflows
-    | _ -> ()
+   | PCAP(h, ETH(eh, IP4(ih, TCP4(th, _))), buf) ->
+     let t = Bidir.t ih th in
+     let f = Bidir.f ih th in
+     let fst =
+       try
+         BiFlows.find t st.biflows
+       with Not_found ->
+         st.nflows <- st.nflows + 1;
+         match st.fh with
+         | None -> failwith "argh"
+         | Some fh -> PackedFlowstate.create f fh
+     in
+     PackedFlowstate.(fst.totpkts <- fst.totpkts + 1);
+     st.biflows <- PackedBiFlows.add t fst st.biflows
+   | _ -> ()
   );
   st
 
 module Genstate = struct
-type genstate = Packed of PackedState.t | Full of State.t
+  type genstate = Packed of PackedState.t | Full of State.t
 end
 
 (** parse a buffer, with state *)
@@ -304,46 +304,46 @@ let parse st buf =
     let shallow_ipproto_demux st ih =
       let open Ip4 in
       match int_to_protocol ih.proto with
-        | Some t -> (match t with
-            | TCP -> Demux.tcp4_demux st (fun st th -> Demux.drop_demux)
-            | _ -> Demux.drop_demux
+      | Some t -> (match t with
+          | TCP -> Demux.tcp4_demux st (fun st th -> Demux.drop_demux)
+          | _ -> Demux.drop_demux
         )
-        | None -> Demux.drop_demux
+      | None -> Demux.drop_demux
     in
     let shallow_ethertype_demux st eh =
       let open Ethernet in
       match int_to_ethertype eh.ethertype with
-        | Some t -> (match t with
-            | IP4 -> Demux.ip_demux st shallow_ipproto_demux
-            | _ -> Demux.drop_demux
+      | Some t -> (match t with
+          | IP4 -> Demux.ip_demux st shallow_ipproto_demux
+          | _ -> Demux.drop_demux
         )
-        | None -> Demux.drop_demux
+      | None -> Demux.drop_demux
     in
     Demux.eth_demux st shallow_ethertype_demux buf
   in
 
-	(* actually proces the buffer, folding over the packets it contains *)
+  (* actually proces the buffer, folding over the packets it contains *)
   match Pcap.iter buf (flow_demux st) with
-    | None ->
-      fprintf stderr "not a pcap file (failed to read magic number in header)\n%!"
+  | None ->
+    fprintf stderr "not a pcap file (failed to read magic number in header)\n%!"
 
-    | Some (header, packets) ->
-            let open Pcap in
-      printf "### %s\n%!" (fh_to_string header);
-			let _ =
-			match st with
-					 | Genstate.Full st ->
-							st.State.fh <- Some header;
-							Genstate.Full (Cstruct.fold pkt_process_flow packets st)
-					 | Genstate.Packed st ->
-							st.PackedState.fh <- Some header;
-							Genstate.Packed (Cstruct.fold pkt_process_packed_flow packets st)
-			in
-			match st with
-				| Genstate.Full st -> printf "npkts: %d\n" st.State.npkts;
-											printf "nflows: %d == %d\n" st.State.nflows (BiFlows.cardinal st.State.biflows)
-				| Genstate.Packed st -> printf	"npkts: %d\n" st.PackedState.npkts;
-											printf "nflows: %d == %d\n" st.PackedState.nflows (BiFlows.cardinal st.PackedState.biflows)
+  | Some (header, packets) ->
+    let open Pcap in
+    printf "### %s\n%!" (fh_to_string header);
+    let _ =
+      match st with
+      | Genstate.Full st ->
+        st.State.fh <- Some header;
+        Genstate.Full (Cstruct.fold pkt_process_flow packets st)
+      | Genstate.Packed st ->
+        st.PackedState.fh <- Some header;
+        Genstate.Packed (Cstruct.fold pkt_process_packed_flow packets st)
+    in
+    match st with
+    | Genstate.Full st -> printf "npkts: %d\n" st.State.npkts;
+      printf "nflows: %d == %d\n" st.State.nflows (BiFlows.cardinal st.State.biflows)
+    | Genstate.Packed st -> printf	"npkts: %d\n" st.PackedState.npkts;
+      printf "nflows: %d == %d\n" st.PackedState.nflows (BiFlows.cardinal st.PackedState.biflows)
 
 
 
@@ -358,5 +358,3 @@ let filename_to_buf filename =
   let buf = Bigarray.(Array1.map_file fd Bigarray.char c_layout false (-1)) in
   let buf = Cstruct.of_bigarray buf in
   buf
-
-
