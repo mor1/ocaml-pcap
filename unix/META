@@ -1,0 +1,12 @@
+# OASIS_START
+# DO NOT EDIT (digest: 849ca98bbb5864aa14ac6b8c42235c5b)
+version = "0.4"
+description = "Packet capture tools"
+requires = "lwt lwt.unix lwt.syntax pcap-format cstruct.lwt"
+archive(byte) = "flowlib.cma"
+archive(byte, plugin) = "flowlib.cma"
+archive(native) = "flowlib.cmxa"
+archive(native, plugin) = "flowlib.cmxs"
+exists_if = "flowlib.cma"
+# OASIS_STOP
+
