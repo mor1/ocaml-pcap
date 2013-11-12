@@ -26,6 +26,16 @@ Library capture
     Pcap
   BuildDepends: cstruct ( >= 0.5.0 ), cstruct.syntax
 
+Document capture
+  Title:                PCAP-format docs
+  Type:                 ocamlbuild (0.3)
+  BuildTools+:          ocamldoc
+  XOCamlbuildPath:      lib
+  XOCamlbuildModules:
+    Packet, Demux,
+    Ethernet, Arp, Icmp, Ip4, Udp4, Tcp4, Dhcp4,
+    Pcap
+
 Library mirage
   Build$: flag(mirage)
   CompiledObject: best
