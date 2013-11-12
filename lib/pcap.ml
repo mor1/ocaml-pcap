@@ -27,8 +27,8 @@ let magic_number = 0xa1b2c3d4_l
 type endian = | Big | Little
 
 let string_of_endian = function
-| Big    -> "big"
-| Little -> "little"
+  | Big    -> "big"
+  | Little -> "little"
 
 (* The pcap format allows the writer to use either big- or little- endian,
    depending on which is most convenient (higher performance). We are able
@@ -43,8 +43,8 @@ module Network = struct
     | Ieee80211
 
   let t_to_int32 = [
-      Ethernet,  1l
-    ; Ieee80211, 105l
+    Ethernet,  1l
+  ; Ieee80211, 105l
   ]
 
   let int32_to_t = List.map (fun (x, y) -> y, x) t_to_int32
@@ -154,7 +154,8 @@ let fh_to_str fh =
 let fh_to_string fh =
   sprintf "magic_number:%.8lx endian:%s version_major:%d version_minor:%d \
            timezone:%lu sigfigs:%lu snaplen:%lu lltype:%lu"
-    fh.magic_number (string_of_endian fh.endian) fh.version_major fh.version_minor
+    fh.magic_number (string_of_endian fh.endian)
+    fh.version_major fh.version_minor
     fh.timezone fh.sigfigs fh.snaplen fh.network
 
 type h = {
@@ -181,33 +182,40 @@ let iter buf demuxf =
     else None
   in
   match pcap_hdr with
-    | None -> None
-    | Some h ->
-      let module H = (val h : HDR) in
+  | None -> None
+  | Some h ->
+    let module H = (val h : HDR) in
 
-      let h buf =
-        { secs = H.get_pcap_packet_ts_sec buf;
-          usecs = H.get_pcap_packet_ts_usec buf;
-          caplen = H.get_pcap_packet_incl_len buf;
-          len = H.get_pcap_packet_orig_len buf
-        }
-      in
+    let h buf =
+      { secs = H.get_pcap_packet_ts_sec buf;
+        usecs = H.get_pcap_packet_ts_usec buf;
+        caplen = H.get_pcap_packet_incl_len buf;
+        len = H.get_pcap_packet_orig_len buf
+      }
+    in
 
-      let fh =
-        { magic_number = H.get_pcap_header_magic_number buf;
-          endian = H.endian;
-          version_major = H.get_pcap_header_version_major buf;
-          version_minor = H.get_pcap_header_version_minor buf;
-          timezone = H.get_pcap_header_thiszone buf;
-          sigfigs = H.get_pcap_header_sigfigs buf;
-          snaplen = H.get_pcap_header_snaplen buf;
-          network = H.get_pcap_header_network buf;
-        }
-      in
-      let _, buf = Cstruct.split buf sizeof_pcap_header in
-      Some (
-        fh, Cstruct.iter
-          (fun buf -> Some (sizeof_pcap_packet + (Int32.to_int (H.get_pcap_packet_incl_len buf))))
-          (fun buf -> PCAP(h buf, demuxf (Cstruct.shift buf sizeof_pcap_packet), buf))
-          buf
-      )
+    let fh =
+      { magic_number = H.get_pcap_header_magic_number buf;
+        endian = H.endian;
+        version_major = H.get_pcap_header_version_major buf;
+        version_minor = H.get_pcap_header_version_minor buf;
+        timezone = H.get_pcap_header_thiszone buf;
+        sigfigs = H.get_pcap_header_sigfigs buf;
+        snaplen = H.get_pcap_header_snaplen buf;
+        network = H.get_pcap_header_network buf;
+      }
+    in
+    let _, buf = Cstruct.split buf sizeof_pcap_header in
+    Some (
+      fh, Cstruct.iter
+        (fun buf ->
+          let offset_delta =
+            sizeof_pcap_packet + (Int32.to_int (H.get_pcap_packet_incl_len buf))
+          in
+          Some offset_delta
+        )
+        (fun buf ->
+           PCAP(h buf, demuxf (Cstruct.shift buf sizeof_pcap_packet), buf)
+        )
+        buf
+    )

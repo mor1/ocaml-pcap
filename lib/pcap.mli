@@ -1,6 +1,8 @@
 (*
- * Copyright (c) 2012 Anil Madhavapeddy <anil@recoil.org>
+ * Copyright (C) 2012 Anil Madhavapeddy <anil@recoil.org>
  * Copyright (C) 2012 Citrix Systems Inc
+ * Copyright (C) 2013 Richard Mortier <mort@cantab.net>
+ *                    Richard Clegg <richard@richardclegg.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -22,8 +24,8 @@ val minor_version: int
 (** Minor version of the pcap format which we understand *)
 
 type endian =
-| Big     (** Big endian (pcap headers) *)
-| Little  (** Little endian (pcap headers) *)
+  | Big     (** Big endian (pcap headers) *)
+  | Little  (** Little endian (pcap headers) *)
 
 val string_of_endian : endian -> string
 
