@@ -79,8 +79,8 @@ let flags_to_string f =
   sprintf "%s" (if is_bcast f then "B" else ".")
 
 let h_to_str h =
-   sprintf "%d,%d,%d,%d, %08lx,%u,%s, %s,%s,%s,%s, '%s'"
-     h.op h.htype h.hlen h.hops h.xid h.secs (flags_to_string h.flags)
+  sprintf "%d,%d,%d,%d, %08lx,%u,%s, %s,%s,%s,%s, '%s'"
+    h.op h.htype h.hlen h.hops h.xid h.secs (flags_to_string h.flags)
     (Ip4.ip_to_string h.ciaddr) (Ip4.ip_to_string h.yiaddr)
     (Ip4.ip_to_string h.siaddr) (Ip4.ip_to_string h.giaddr)
     (Ethernet.mac_to_string h.chaddr)
@@ -96,8 +96,7 @@ let h_to_string h =
     (buf_to_string " " h.sname)
     (buf_to_string " " h.file)
 
-type p =
-  | UNKNOWN of Cstruct.t
+type p = UNKNOWN of Cstruct.t
 type t = h * p
 
 let to_str (h, UNKNOWN p) = sprintf "DHCP(%s)" (h_to_str h)

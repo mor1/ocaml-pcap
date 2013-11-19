@@ -63,35 +63,34 @@ type h = {
   xsum: int;
 }
 
-let h buf =  
+let h buf =
   { typ = get_icmp_typ buf;
     code = get_icmp_code buf;
     xsum = get_icmp_xsum buf;
   }
 
-let format_typ_code h = 
+let format_typ_code h =
   match int_to_typ h.typ with
-    | None -> (sprintf "#%d" h.typ), (sprintf "#%d" h.code)
-    | Some v -> (typ_to_string v), (match v with
-        | REDIRECT -> (match int_to_redirect_code h.code with
-            | None -> sprintf "#%d" h.code
-            | Some v -> redirect_code_to_string v
+  | None -> (sprintf "#%d" h.typ), (sprintf "#%d" h.code)
+  | Some v -> (typ_to_string v), (match v with
+      | REDIRECT -> (match int_to_redirect_code h.code with
+          | None -> sprintf "#%d" h.code
+          | Some v -> redirect_code_to_string v
         )
-        | _ -> (sprintf "#%d" h.code)
+      | _ -> (sprintf "#%d" h.code)
     )
 
-let h_to_str h = 
+let h_to_str h =
   let typ, code = format_typ_code h in
   sprintf "%s,%s, %04x" typ code h.xsum
 
-let h_to_string h = 
+let h_to_string h =
   let typ, code = format_typ_code h in
   sprintf "type:%s code:%s xsum:%04x" typ code h.xsum
 
-type p = 
-  | UNKNOWN of Cstruct.t
+type p = UNKNOWN of Cstruct.t
 type t = h * p
 
 let to_str (h, UNKNOWN p) = sprintf "ICMP(%s)" (h_to_str h)
-let to_string (h, UNKNOWN p) = 
+let to_string (h, UNKNOWN p) =
   sprintf "ICMP(%s)|%s" (h_to_string h) (buf_to_string "\n\t" p)

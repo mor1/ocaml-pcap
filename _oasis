@@ -21,7 +21,7 @@ Document capture
   BuildTools+:          ocamldoc
   XOCamlbuildPath:      lib
   XOCamlbuildModules:
-    Demux, Packet,
+    Packet, Demux,
     Ethernet, Arp, Icmp, Ip4, Udp4, Tcp4, Dhcp4,
     Flow, Pcap
 

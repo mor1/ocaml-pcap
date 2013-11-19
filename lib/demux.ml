@@ -58,32 +58,33 @@ let eth_demux st ethertype_demux buf =
 let udp4_port_demux st uh =
   let open Ip4 in
   match int_to_port uh.Udp4.dstpt with
-    | None -> data_demux
-    | Some p -> match p with
-        | BOOTPS | BOOTPC
-          -> (fun buf -> Dhcp4.(DHCP(h buf, UNKNOWN(Cstruct.shift buf sizeof_dhcp4))))
-        | _ -> data_demux
+  | None -> data_demux
+  | Some p -> match p with
+    | BOOTPS | BOOTPC
+      -> (fun buf ->
+          Dhcp4.(DHCP(h buf, UNKNOWN(Cstruct.shift buf sizeof_dhcp4))))
+    | _ -> data_demux
 
 let tcp4_port_demux st th =
   let open Ip4 in
   match int_to_port th.Tcp4.dstpt with
-    | None -> data_demux
-    | Some p -> match p with
-        | _ -> data_demux
+  | None -> data_demux
+  | Some p -> match p with
+    | _ -> data_demux
 
 let ipproto_demux st ih =
   let open Ip4 in
   match int_to_protocol ih.proto with
-    | None -> data_demux
-    | Some t -> match t with
-        | UDP -> udp4_demux st udp4_port_demux
-        | TCP -> tcp4_demux st tcp4_port_demux
-        | _ -> data_demux
+  | None -> data_demux
+  | Some t -> match t with
+    | UDP -> udp4_demux st udp4_port_demux
+    | TCP -> tcp4_demux st tcp4_port_demux
+    | _ -> data_demux
 
 let ethertype_demux st eh =
   let open Ethernet in
   match int_to_ethertype eh.ethertype with
-    | None -> data_demux
-    | Some t -> match t with
-        | IP4 -> ip_demux st ipproto_demux
-        | _ -> data_demux
+  | None -> data_demux
+  | Some t -> match t with
+    | IP4 -> ip_demux st ipproto_demux
+    | _ -> data_demux

@@ -33,41 +33,41 @@ type t =
 let to_str pkt =
   let rec aux pkt str =
     match pkt with
-      | ETH (h, p) ->
-        let s = sprintf "%s|ETH(%s)" str (Ethernet.to_str h) in aux p s
-      | IP4 (h, p)   ->
-        let s = sprintf "%s|IP4(%s)" str (Ip4.to_str h) in aux p s
-      | TCP4 (h, p)  ->
-        let s = sprintf "%s|TCP4(%s)" str (Tcp4.to_str h) in aux p s
-      | UDP4 (h, p)  ->
-        let s = sprintf "%s|UDP4(%s)" str (Udp4.to_str h) in aux p s
+    | ETH (h, p) ->
+      let s = sprintf "%s|ETH(%s)" str (Ethernet.to_str h) in aux p s
+    | IP4 (h, p)   ->
+      let s = sprintf "%s|IP4(%s)" str (Ip4.to_str h) in aux p s
+    | TCP4 (h, p)  ->
+      let s = sprintf "%s|TCP4(%s)" str (Tcp4.to_str h) in aux p s
+    | UDP4 (h, p)  ->
+      let s = sprintf "%s|UDP4(%s)" str (Udp4.to_str h) in aux p s
 
-      | DHCP p -> sprintf "%s|%s" str (Dhcp4.to_str p)
-      | ARP p -> sprintf "%s|%s" str (Arp.to_str p)
+    | DHCP p -> sprintf "%s|%s" str (Dhcp4.to_str p)
+    | ARP p -> sprintf "%s|%s" str (Arp.to_str p)
 
-      | DATA bs -> sprintf "%s|DATA(.)" str
-      | ERROR bs -> sprintf "%s|ERR(%s)" str (buf_to_string "\n\t" bs)
-      | DROP -> sprintf "%s|." str
+    | DATA bs -> sprintf "%s|DATA(.)" str
+    | ERROR bs -> sprintf "%s|ERR(%s)" str (buf_to_string "\n\t" bs)
+    | DROP -> sprintf "%s|." str
   in
   aux pkt ""
 
 let to_string pkt =
   let rec aux pkt str =
     match pkt with
-      | ETH (h, p) ->
-        let s = sprintf "%s|ETH(%s)" str (Ethernet.to_string h) in aux p s
-      | IP4 (h, p)   ->
-        let s = sprintf "%s|IP4(%s)" str (Ip4.to_string h) in aux p s
-      | TCP4 (h, p)  ->
-        let s = sprintf "%s|TCP4(%s)" str (Tcp4.to_string h) in aux p s
-      | UDP4 (h, p)  ->
-        let s = sprintf "%s|UDP4(%s)" str (Udp4.to_string h) in aux p s
+    | ETH (h, p) ->
+      let s = sprintf "%s|ETH(%s)" str (Ethernet.to_string h) in aux p s
+    | IP4 (h, p)   ->
+      let s = sprintf "%s|IP4(%s)" str (Ip4.to_string h) in aux p s
+    | TCP4 (h, p)  ->
+      let s = sprintf "%s|TCP4(%s)" str (Tcp4.to_string h) in aux p s
+    | UDP4 (h, p)  ->
+      let s = sprintf "%s|UDP4(%s)" str (Udp4.to_string h) in aux p s
 
-      | DHCP p -> sprintf "%s|%s" str (Dhcp4.to_string p)
-      | ARP p -> sprintf "%s|%s" str (Arp.to_string p)
+    | DHCP p -> sprintf "%s|%s" str (Dhcp4.to_string p)
+    | ARP p -> sprintf "%s|%s" str (Arp.to_string p)
 
-      | DATA bs -> sprintf "%s|DATA(%s)" str (buf_to_string "\n\t" bs)
-      | ERROR bs -> sprintf "%s|ERR(%s)" str (buf_to_string "\n\t" bs)
-      | DROP -> sprintf "%s|." str
+    | DATA bs -> sprintf "%s|DATA(%s)" str (buf_to_string "\n\t" bs)
+    | ERROR bs -> sprintf "%s|ERR(%s)" str (buf_to_string "\n\t" bs)
+    | DROP -> sprintf "%s|." str
   in
   aux pkt ""

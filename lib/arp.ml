@@ -84,8 +84,7 @@ let h_to_string h =
     (Ethernet.mac_to_string h.shaddr) (Ip4.ip_to_string h.spaddr)
     (Ethernet.mac_to_string h.dhaddr) (Ip4.ip_to_string h.dpaddr)
 
-type p =
-  | UNKNOWN of Cstruct.t
+type p = UNKNOWN of Cstruct.t
 type t = h * p
 
 let to_str (h, UNKNOWN p) = sprintf "ARP(%s)" (h_to_str h)
