@@ -1,7 +1,10 @@
+.PHONY: build doc install test setup reinstall clean distclean
 all: build
 
-NAME=pcap
+NAME=pcap-format
 J=4
+OFLAGS ?= -classic-display
+TIME = $(shell bash -c "echo $$(date +%Y%m%d-%H%M%S)")
 
 UNIX ?= $(shell if ocamlfind query lwt.unix >/dev/null 2>&1; then echo --enable-unix; fi)
 MIRAGE ?= $(shell if ocamlfind query mirage-net >/dev/null 2>&1; then echo --enable-mirage; fi)
@@ -15,21 +18,15 @@ setup.ml: _oasis
 setup.data: setup.ml
 	ocaml setup.ml -configure $(UNIX) $(MIRAGE) $(TESTS)
 
-
 build: setup.data setup.ml
-	ocaml setup.ml -build -j $(J)
+	ocaml setup.ml -build -j $(J) $(OFLAGS)
 
 doc: setup.data setup.ml
-	ocaml setup.ml -doc -j $(J)
+	ocaml setup.ml -doc -j $(J) $(OFLAGS)
 
 install: setup.data setup.ml
-	ocaml setup.ml -install
+	ocaml setup.ml -install $(OFLAGS)
 
-# XXX: this isn't running the test for some reason
-#test: setup.ml build
-#	ocaml setup.ml -test
-
-.PHONY: test setup reinstall clean
 test:
 	./_build/lib_test/test.native
 
@@ -43,3 +40,7 @@ clean:
 	ocamlbuild -clean
 	$(RM) setup.data setup.log
 	$(RM) flows.native print.native packed_flow.native
+
+distclean: clean
+	$(RM) setup.ml myocamlbuild.ml lib/capture.*
+	mv _tags _tags.$(TIME)
