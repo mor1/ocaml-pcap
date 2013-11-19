@@ -29,6 +29,7 @@ type endian = | Big | Little
 let string_of_endian = function
   | Big    -> "big"
   | Little -> "little"
+let endian_to_string = string_of_endian
 
 (* The pcap format allows the writer to use either big- or little- endian,
    depending on which is most convenient (higher performance). We are able

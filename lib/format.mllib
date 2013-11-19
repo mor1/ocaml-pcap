@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: ef0fa55199d06ab03b0aa24598ad4328)
+# DO NOT EDIT (digest: 81c22f8489afe78362e29be52439ecfd)
 Packet
 Demux
 Ethernet
@@ -10,4 +10,5 @@ Udp4
 Tcp4
 Dhcp4
 Pcap
+Flow
 # OASIS_STOP

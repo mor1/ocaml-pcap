@@ -15,42 +15,25 @@ Flag mirage
   Description: build the mirage library
   Default: false
 
-Library capture
-  CompiledObject: best
-  Path: lib
-  Findlibname: pcap-format
-  Pack: true
-  Modules:
-    Packet, Demux,
-    Ethernet, Arp, Icmp, Ip4, Udp4, Tcp4, Dhcp4,
-    Pcap
-  BuildDepends: cstruct ( >= 0.5.0 ), cstruct.syntax
-
 Document capture
   Title:                PCAP-format docs
   Type:                 ocamlbuild (0.3)
   BuildTools+:          ocamldoc
   XOCamlbuildPath:      lib
   XOCamlbuildModules:
+    Demux, Packet,
+    Ethernet, Arp, Icmp, Ip4, Udp4, Tcp4, Dhcp4,
+    Flow, Pcap
+
+Library format
+  CompiledObject: best
+  Path: lib
+  FindlibName: pcap-format
+  Modules:
     Packet, Demux,
     Ethernet, Arp, Icmp, Ip4, Udp4, Tcp4, Dhcp4,
-    Pcap
-
-Library mirage
-  Build$: flag(mirage)
-  CompiledObject: best
-  Path: mirage
-  Findlibname: mirage
-  Findlibparent: capture
-  Modules: Pcap_mirage, Lwt_bounded_stream
-  BuildDepends: mirage-net, pcap-format, lwt, lwt.syntax
-
-Library flowlib
-  Build$: flag(unix)
-  CompiledObject: best
-  Path: unix
-  Modules: Flowlib
-  BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format, cstruct.lwt
+    Pcap, Flow
+  BuildDepends: cstruct ( >= 0.5.0 ), cstruct.syntax
 
 Executable print
   Build$: flag(unix)
@@ -61,47 +44,73 @@ Executable print
   Install: false
   BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format
 
-Executable flows
-  Build$: flag(unix)
-  CompiledObject: best
-  Path: unix
-  MainIs: flows.ml
-  Custom: true
-  Install: false
-  BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format, cstruct.lwt
+# Library flow
+#   CompiledObject: best
+#   Path: lib
+#   Pack: true
+#   FindlibName: pcap-flow
+#   FindlibParent: pcap-format
+#   Modules: Flow
+#   BuildDepends: pcap-format
 
-Executable packed_flow
-  Build$: flag(unix)
-  CompiledObject: best
-  Path: unix
-  MainIs: packed_flow.ml
-  Custom: true
-  Install: false
-  BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format, cstruct.lwt, flowlib
 
-Executable copy
-  Build$: flag(unix)
-  CompiledObject: best
-  Path: unix
-  MainIs: copy.ml
-  Custom: true
-  Install: false
-  BuildDepends: pcap-format
+# Library mirage
+#   Build$: flag(mirage)
+#   CompiledObject: best
+#   Path: mirage
+#   Findlibname: mirage
+#   Findlibparent: capture
+#   Modules: Pcap_mirage, Lwt_bounded_stream
+#   BuildDepends: mirage-net, pcap-format, lwt, lwt.syntax
 
-Executable test
-  Path: lib_test
-  MainIs: test.ml
-  Build$: flag(tests)
-  Custom: true
-  CompiledObject: best
-  Install: false
-  BuildDepends: lwt, lwt.unix, cstruct, pcap-format, oUnit
+# Library flowlib
+#   Build$: flag(unix)
+#   CompiledObject: best
+#   Path: unix
+#   Modules: Flowlib
+#   BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format, cstruct.lwt
 
-Executable capture
-  Build$: flag(mirage)
-  CompiledObject: best
-  Path: mirage
-  MainIs: capture.ml
-  Custom: true
-  Install: false
-  BuildDepends: lwt, lwt.syntax, cstruct, pcap-format, mirage-net, mirage
+# Executable flows
+#   Build$: flag(unix)
+#   CompiledObject: best
+#   Path: unix
+#   MainIs: flows.ml
+#   Custom: true
+#   Install: false
+#   BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format, cstruct.lwt
+
+# Executable packed_flow
+#   Build$: flag(unix)
+#   CompiledObject: best
+#   Path: unix
+#   MainIs: packed_flow.ml
+#   Custom: true
+#   Install: false
+#   BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format, cstruct.lwt, flowlib
+
+# Executable copy
+#   Build$: flag(unix)
+#   CompiledObject: best
+#   Path: unix
+#   MainIs: copy.ml
+#   Custom: true
+#   Install: false
+#   BuildDepends: pcap-format
+
+# Executable test
+#   Path: lib_test
+#   MainIs: test.ml
+#   Build$: flag(tests)
+#   Custom: true
+#   CompiledObject: best
+#   Install: false
+#   BuildDepends: lwt, lwt.unix, cstruct, pcap-format, oUnit
+
+# Executable capture
+#   Build$: flag(mirage)
+#   CompiledObject: best
+#   Path: mirage
+#   MainIs: capture.ml
+#   Custom: true
+#   Install: false
+#   BuildDepends: lwt, lwt.syntax, cstruct, pcap-format, mirage-net, mirage

@@ -188,8 +188,33 @@ val to_str: h -> string
 (** Verbose [h] pretty-printer. *)
 val to_string: h -> string
 
-(** A catpured PCAP packet: a header {! h}, the packet {! Packet.t} and the raw
+(** A captured PCAP packet: a header {! h}, the packet {! Packet.t} and the raw
     bytes {! Cstruct.t} for error reporting. *)
 type t = PCAP of h * Packet.t * Cstruct.t
 
+(*
+
+
+ (** [openfn filename] returns a {! Stream} of [Pcap.t] from file [filename],
+      having validated the fileheader. *)
+  val filename_to_stream: string -> t Stream.t
+
+  (* Perhaps also break this down a bit: eg., given some `fd` type: *)
+  val fd_is_valid: fd -> bool
+  val fd_to_stream: fd -> t Stream.t
+
+
+(* make this an lwt_stream thing? *)
 val iter: Cstruct.t -> (Cstruct.t -> Packet.t) -> (fh * t Cstruct.iter) option
+
+(*
+  add some [Stream] extension functions here, so we can fold, map, etc over a
+  [Pcap.t Stream.t] ??
+
+map
+foldl
+  merge (according to a comparatorf; if comparatorf is ~cycle, just combine)
+*)
+
+
+*)
