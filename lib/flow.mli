@@ -21,20 +21,32 @@
 
 module type Key = sig
 
-  (** Concrete flow type and pretty printers. *)
+  (** Flow identified. *)
   type t
+
   val to_str: t -> string
+  (** Compact pretty printer. *)
+
   val to_string: t -> string
+  (** Verbose pretty printer. *)
 
-  (** [extract packet] returns the {! t} this packet matches. *)
+  val unmatched: t
+  (** Represent the unmatched flow. *)
+
   val extract: Packet.t -> t
+  (** [extract packet] returns the {! t} this packet matches. *)
 
-  (** [compare a b] defines the usual comparator for {! t} so that we can
-      use as a [Map] key. Should use the JS Core [with compare] functionality.
-  *)
   val compare: t -> t -> int
+  (** [compare a b] defines the usual comparator for {! t} so that we can
+       use as a [Map] key. Should use the JS Core [with compare] functionality.
+  *)
 
 end
+
+(** Some concrete Flow {! Key} types. *)
+
+module Unidir : Key
+module Bidir : Key
 
 (** Defines the state associated with an {! Key.t}.
 
@@ -50,18 +62,23 @@ module type Value = sig
   val to_str: t -> string
   val to_string: t -> string
 
-  (** [create ()] returns an empty flowstate record. *)
   val create: unit -> t
+  (** [create ()] returns an empty flowstate record. *)
 
+  val update: t -> Packet.t -> t
   (** [update flowstate packet] consumes [packet] updating [flowstate] as
       desired. *)
-  val update: t -> Packet.t -> t
 
 end
+
+(*
 
 (** A map from {! Key.t} to {! Value.t}. *)
 
 module type State = sig
+  type key = ...
+  type value = ...
+
   type t
 
   val to_str: t -> string
@@ -89,4 +106,6 @@ end
     Should be some kind of lazy [Packet.t] sequence not a [Packet.t list] --
     existing code provides this via the [iter] function with a caller-supplied
     [demuxf].
+*)
+
 *)
