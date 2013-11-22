@@ -18,7 +18,7 @@ setup.ml: _oasis
 setup.data: setup.ml
 	ocaml setup.ml -configure $(UNIX) $(MIRAGE) $(TESTS)
 
-build: setup.data setup.ml
+build: setup
 	ocaml setup.ml -build -j $(J) $(OFLAGS)
 
 doc: setup.data setup.ml
@@ -31,6 +31,7 @@ test:
 	./_build/lib_test/test.native
 
 setup: setup.ml setup.data
+	echo "<**/*.ml{,i}>: syntax_camlp4o, pkg_camlp4" >> _tags
 
 reinstall: setup.ml
 	ocamlfind remove $(NAME) || true
@@ -42,5 +43,5 @@ clean:
 	$(RM) flows.native print.native packed_flow.native
 
 distclean: clean
-	$(RM) setup.ml myocamlbuild.ml lib/capture.*
-	mv _tags _tags.$(TIME)
+	$(RM) setup.ml myocamlbuild.ml lib/capture.* _tags
+	# mv _tags _tags.$(TIME)
