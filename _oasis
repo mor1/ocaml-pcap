@@ -24,7 +24,7 @@ Library capture
     Packet, Demux,
     Ethernet, Arp, Icmp, Ip4, Udp4, Tcp4, Dhcp4,
     Pcap
-  BuildDepends: cstruct ( >= 0.5.0 ), cstruct.syntax
+  BuildDepends: cstruct ( >= 0.5.0 ), cstruct.syntax, ipaddr
 
 Library mirage
   Build$: flag(mirage)
@@ -40,7 +40,7 @@ Library flowlib
   CompiledObject: best
   Path: unix
   Modules: Flowlib
-  BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format, cstruct.lwt
+  BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format, cstruct.lwt, ipaddr
 
 Executable print
   Build$: flag(unix)

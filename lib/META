@@ -1,8 +1,8 @@
 # OASIS_START
-# DO NOT EDIT (digest: 54e4c9fbebfbb6e7deb1ff60bbe93cd7)
+# DO NOT EDIT (digest: c55f4d66a3fb84e616fae32935f433a9)
 version = "0.4"
 description = "Packet capture tools"
-requires = "cstruct cstruct.syntax"
+requires = "cstruct cstruct.syntax ipaddr"
 archive(byte) = "capture.cma"
 archive(byte, plugin) = "capture.cma"
 archive(native) = "capture.cmxa"
