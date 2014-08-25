@@ -15,7 +15,6 @@
  *)
 
 open Printf
-open Operators
 
 type bytes = Cstruct.t
 
@@ -93,4 +92,4 @@ type t = h * p
 
 let to_str (h, UNKNOWN p) = sprintf "ICMP(%s)" (h_to_str h)
 let to_string (h, UNKNOWN p) =
-  sprintf "ICMP(%s)|%s" (h_to_string h) (buf_to_string "\n\t" p)
+  sprintf "ICMP(%s)|%s" (h_to_string h) (Buf.to_string "\n\t" p)

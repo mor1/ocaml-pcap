@@ -20,6 +20,7 @@
     cleaner to break them out. *)
 
 open Packet
+open Ps
 
 (** stop_demuxf: buf -> Packet.t *)
 
