@@ -32,8 +32,24 @@ Library format
   Modules:
     Packet, Demux,
     Ethernet, Arp, Icmp, Ip4, Udp4, Tcp4, Dhcp4,
-    Pcap, Flow
-  BuildDepends: cstruct ( >= 0.5.0 ), cstruct.syntax
+    Pcap
+  BuildDepends: cstruct ( >= 0.5.0 ), cstruct.syntax, ipaddr
+
+Library mirage
+  Build$: flag(mirage)
+  CompiledObject: best
+  Path: mirage
+  Findlibname: mirage
+  Findlibparent: capture
+  Modules: Pcap_mirage, Lwt_bounded_stream
+  BuildDepends: mirage-net, pcap-format, lwt, lwt.syntax
+
+Library flowlib
+  Build$: flag(unix)
+  CompiledObject: best
+  Path: unix
+  Modules: Flowlib
+  BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format, cstruct.lwt, ipaddr
 
 Executable print
   Build$: flag(unix)

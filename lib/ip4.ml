@@ -16,6 +16,7 @@
 
 open Operators
 open Printf
+open Ipaddr
 
 cenum protocol {
   ICMP =   1;
@@ -105,7 +106,9 @@ let flags_to_string f =
     (if is_df f then "DF" else "..")
     (if is_mf f then "MF" else "..")
 
-let ip_to_string = Cstruct.ipv4_to_string
+let ip_to_string address = 
+    let ipadd= Ipaddr.V4.of_int32 address
+    in Ipaddr.V4.to_string ipadd
 
 let to_str h =
   let proto = match int_to_protocol h.proto with
