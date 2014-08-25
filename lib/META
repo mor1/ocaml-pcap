@@ -1,8 +1,8 @@
 # OASIS_START
-# DO NOT EDIT (digest: bddc19069613eaa4c9abe3d6daaa3cb2)
+# DO NOT EDIT (digest: e487c25e8e145195b21a53cdaf62f6b6)
 version = "0.4"
 description = "Packet capture tools"
-requires = "ocap.ps"
+requires = "cstruct cstruct.syntax ocap.ps"
 archive(byte) = "ocap.cma"
 archive(byte, plugin) = "ocap.cma"
 archive(native) = "ocap.cmxa"
@@ -17,16 +17,5 @@ package "ps" (
  archive(native) = "ps.cmxa"
  archive(native, plugin) = "ps.cmxs"
  exists_if = "ps.cma"
-)
-
-package "mirage" (
- version = "0.4"
- description = "Packet capture tools"
- requires = "mirage-net pcap-format lwt lwt.syntax"
- archive(byte) = "mirage.cma"
- archive(byte, plugin) = "mirage.cma"
- archive(native) = "mirage.cmxa"
- archive(native, plugin) = "mirage.cmxs"
- exists_if = "mirage.cma"
 )
 # OASIS_STOP

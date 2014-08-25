@@ -31,35 +31,35 @@ Document "ocap"
 Library "ocap"
   Pack: true
   Path: lib/
-  Modules: Pcap, Packet, Demux
-  BuildDepends: ocap.ps
+  Modules: Pcap
+  BuildDepends: cstruct ( >= 0.5.0 ), cstruct.syntax, ocap.ps
 
 Library "ps"
   Pack: true
   Path: lib/ps/
-  FindlibName: ps
   FindlibParent: ocap
+  FindlibName: ps
   Modules:
-    Packet, Demux,
-    Ethernet, Arp, Icmp, Ip4, Udp4, Tcp4, Dhcp4,
-    Pcap
+    Buf, Packet, Demux,
+    Ethernet, Arp, Icmp, Ip4, Udp4, Tcp4, Dhcp4
   BuildDepends: cstruct ( >= 0.5.0 ), cstruct.syntax, ipaddr
 
-Library mirage
-  Build$: flag(mirage)
-  CompiledObject: best
-  Path: mirage
-  Findlibname: mirage
-  Findlibparent: ocap
-  Modules: Pcap_mirage, Lwt_bounded_stream
-  BuildDepends: mirage-net, pcap-format, lwt, lwt.syntax
 
-Library flowlib
-  Build$: flag(unix)
-  CompiledObject: best
-  Path: unix
-  Modules: Flowlib
-  BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format, cstruct.lwt, ipaddr
+# Library mirage
+#   Build$: flag(mirage)
+#   CompiledObject: best
+#   Path: mirage
+#   Findlibname: mirage
+#   Findlibparent: ocap
+#   Modules: Pcap_mirage, Lwt_bounded_stream
+#   BuildDepends: mirage-net, pcap-format, lwt, lwt.syntax
+
+# Library flowlib
+#   Build$: flag(unix)
+#   CompiledObject: best
+#   Path: unix
+#   Modules: Flowlib
+#   BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format, cstruct.lwt, ipaddr
 
 
 # Library "fs"
