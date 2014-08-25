@@ -1,47 +1,45 @@
-.PHONY: build doc install test setup reinstall clean distclean
-all: build
+-include Makefile.config
 
-NAME=pcap-format
-J=4
-OFLAGS ?= -classic-display
-TIME = $(shell bash -c "echo $$(date +%Y%m%d-%H%M%S)")
+# OASIS_START
+# DO NOT EDIT (digest: a3c674b4239234cbbe53afe090018954)
 
-UNIX ?= $(shell if ocamlfind query lwt.unix >/dev/null 2>&1; then echo --enable-unix; fi)
-MIRAGE ?= $(shell if ocamlfind query mirage-net >/dev/null 2>&1; then echo --enable-mirage; fi)
+SETUP = ocaml setup.ml
 
-## temporarily disable unit tests
-TESTS ?= --disable-tests # $(shell if ocamlfind query oUnit >/dev/null && ocamlfind query lwt.unix >/dev/null 2>&1; then echo --enable-tests; fi)
+build: setup.data
+	$(SETUP) -build $(BUILDFLAGS)
 
-setup.ml: _oasis
-	oasis setup
+doc: setup.data build
+	$(SETUP) -doc $(DOCFLAGS)
 
-setup.data: setup.ml
-	ocaml setup.ml -configure $(UNIX) $(MIRAGE) $(TESTS)
+test: setup.data build
+	$(SETUP) -test $(TESTFLAGS)
 
-build: setup
-	ocaml setup.ml -build -j $(J) $(OFLAGS)
+all:
+	$(SETUP) -all $(ALLFLAGS)
 
-doc: setup.data setup.ml
-	ocaml setup.ml -doc -j $(J) $(OFLAGS)
+install: setup.data
+	$(SETUP) -install $(INSTALLFLAGS)
 
-install: setup.data setup.ml
-	ocaml setup.ml -install $(OFLAGS)
+uninstall: setup.data
+	$(SETUP) -uninstall $(UNINSTALLFLAGS)
 
-test:
-	./_build/lib_test/test.native
-
-setup: setup.ml setup.data
-	echo "<**/*.ml{,i}>: syntax_camlp4o, pkg_camlp4" >> _tags
-
-reinstall: setup.ml
-	ocamlfind remove $(NAME) || true
-	ocaml setup.ml -reinstall
+reinstall: setup.data
+	$(SETUP) -reinstall $(REINSTALLFLAGS)
 
 clean:
-	ocamlbuild -clean
-	$(RM) setup.data setup.log
-	$(RM) flows.native print.native packed_flow.native
+	$(SETUP) -clean $(CLEANFLAGS)
 
-distclean: clean
-	$(RM) setup.ml myocamlbuild.ml lib/capture.* _tags
-	# mv _tags _tags.$(TIME)
+distclean:
+	$(SETUP) -distclean $(DISTCLEANFLAGS)
+
+setup.data:
+	$(SETUP) -configure $(CONFIGUREFLAGS)
+
+configure:
+	$(SETUP) -configure $(CONFIGUREFLAGS)
+
+.PHONY: build doc test all install uninstall reinstall clean distclean configure
+
+# OASIS_STOP
+
+-include Makefile.local

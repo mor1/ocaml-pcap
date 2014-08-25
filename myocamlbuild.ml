@@ -1,11 +1,5 @@
 (* OASIS_START *)
-<<<<<<< HEAD
-(* DO NOT EDIT (digest: 25a030332bd03484842c4571b25c7fb2) *)
-||||||| merged common ancestors
-(* DO NOT EDIT (digest: 1d79ccf63a1972d67e150ff26cdf0e8a) *)
-=======
-(* DO NOT EDIT (digest: 22e867065e871ba91cc5f788399bd08b) *)
->>>>>>> clegg/master
+(* DO NOT EDIT (digest: 91c59e19eb2e59f775ec482f38b11cee) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -45,10 +39,10 @@ module OASISExpr = struct
   open OASISGettext
 
 
-  type test = string 
+  type test = string
 
 
-  type flag = string 
+  type flag = string
 
 
   type t =
@@ -58,10 +52,10 @@ module OASISExpr = struct
     | EOr of t * t
     | EFlag of flag
     | ETest of test * string
-    
 
 
-  type 'a choices = (t * 'a) list 
+
+  type 'a choices = (t * 'a) list
 
 
   let eval var_get t =
@@ -436,10 +430,10 @@ module MyOCamlbuildBase = struct
   module OC = Ocamlbuild_pack.Ocaml_compiler
 
 
-  type dir = string 
-  type file = string 
-  type name = string 
-  type tag = string 
+  type dir = string
+  type file = string
+  type name = string
+  type tag = string
 
 
 (* # 62 "src/plugins/ocamlbuild/MyOCamlbuildBase.ml" *)
@@ -454,7 +448,7 @@ module MyOCamlbuildBase = struct
          * directory.
          *)
         includes:  (dir * dir list) list;
-      } 
+      }
 
 
   let env_filename =
@@ -601,43 +595,21 @@ end
 open Ocamlbuild_plugin;;
 let package_default =
   {
-<<<<<<< HEAD
-     MyOCamlbuildBase.lib_ocaml = [("format", ["lib"])];
-||||||| merged common ancestors
-     MyOCamlbuildBase.lib_ocaml =
-       [("capture", ["lib"]); ("mirage", ["mirage"]); ("flowlib", ["unix"])];
-=======
      MyOCamlbuildBase.lib_ocaml =
        [
-          ("capture", ["lib"], []);
+          ("ps", ["lib/ps"], []);
+          ("ocap", ["lib"], []);
           ("mirage", ["mirage"], []);
           ("flowlib", ["unix"], [])
        ];
->>>>>>> clegg/master
      lib_c = [];
      flags = [];
-<<<<<<< HEAD
-     includes = [("unix", ["lib"])];
-     }
-||||||| merged common ancestors
-     includes =
-       [("unix", ["lib"]); ("mirage", ["lib"]); ("lib_test", ["lib"])];
-     }
-=======
-     includes =
-       [("unix", ["lib"]); ("mirage", ["lib"]); ("lib_test", ["lib"])]
+     includes = [("lib", ["lib/ps"])]
   }
->>>>>>> clegg/master
   ;;
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
 
-<<<<<<< HEAD
-# 490 "myocamlbuild.ml"
-||||||| merged common ancestors
-# 492 "myocamlbuild.ml"
-=======
 # 614 "myocamlbuild.ml"
->>>>>>> clegg/master
 (* OASIS_STOP *)
 Ocamlbuild_plugin.dispatch dispatch_default;;

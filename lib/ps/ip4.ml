@@ -14,9 +14,9 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-open Operators
 open Printf
 open Ipaddr
+open Cstruct
 
 cenum protocol {
   ICMP =   1;
@@ -106,7 +106,7 @@ let flags_to_string f =
     (if is_df f then "DF" else "..")
     (if is_mf f then "MF" else "..")
 
-let ip_to_string address = 
+let ip_to_string address =
     let ipadd= Ipaddr.V4.of_int32 address
     in Ipaddr.V4.to_string ipadd
 

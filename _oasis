@@ -1,34 +1,44 @@
-OASISFormat: 0.3
-Name:        pcap
+OASISFormat: 0.4
+Name:        ocap
 Version:     0.4
 Synopsis:    Packet capture tools
 Authors:     Anil Madhavapeddy, Dave Scott, Richard Mortier, Richard Clegg
 License:     ISC
-Plugins:     META (0.2)
+Plugins:     META (0.2), DevFiles (0.2)
 BuildTools:  ocamlbuild
+
 
 Flag unix
   Description: build the Unix binary
   Default: false
 
 Flag mirage
-  Description: build the mirage library
+  Description: build the Mirage library
   Default: false
 
-Document capture
-  Title:                PCAP-format docs
-  Type:                 ocamlbuild (0.3)
-  BuildTools+:          ocamldoc
-  XOCamlbuildPath:      lib
+
+Document "ocap"
+  Title: PCAP-format docs
+  Type: ocamlbuild (0.3)
+  BuildTools+: ocamldoc
+  XOCamlbuildPath: lib/
   XOCamlbuildModules:
     Packet, Demux,
     Ethernet, Arp, Icmp, Ip4, Udp4, Tcp4, Dhcp4,
-    Flow, Pcap
+    Pcap, Flow, Unidir, Bidir
 
-Library format
-  CompiledObject: best
-  Path: lib
-  FindlibName: pcap-format
+
+Library "ocap"
+  Pack: true
+  Path: lib/
+  Modules: Pcap, Packet, Demux
+  BuildDepends: ocap.ps
+
+Library "ps"
+  Pack: true
+  Path: lib/ps/
+  FindlibName: ps
+  FindlibParent: ocap
   Modules:
     Packet, Demux,
     Ethernet, Arp, Icmp, Ip4, Udp4, Tcp4, Dhcp4,
@@ -40,7 +50,7 @@ Library mirage
   CompiledObject: best
   Path: mirage
   Findlibname: mirage
-  Findlibparent: capture
+  Findlibparent: ocap
   Modules: Pcap_mirage, Lwt_bounded_stream
   BuildDepends: mirage-net, pcap-format, lwt, lwt.syntax
 
@@ -51,14 +61,24 @@ Library flowlib
   Modules: Flowlib
   BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format, cstruct.lwt, ipaddr
 
-Executable print
-  Build$: flag(unix)
-  CompiledObject: best
-  Path: unix
-  MainIs: print.ml
-  Custom: true
-  Install: false
-  BuildDepends: lwt, lwt.unix, lwt.syntax, pcap-format
+
+# Library "fs"
+#   Pack: true
+#   Path: lib/fs/
+#   FindlibParent: capture
+#   FindlibName: flows
+#   Modules: Flow, Unidir, Bidir
+#   BuildDepends: cstruct ( >= 0.5.0 ), cstruct.syntax, capture
+
+
+# Executable print
+#   Build$: flag(unix)
+#   CompiledObject: best
+#   Path: unix
+#   MainIs: print.ml
+#   Custom: true
+#   Install: false
+#   BuildDepends: lwt, lwt.unix, lwt.syntax, capture
 
 # Library flow
 #   CompiledObject: best

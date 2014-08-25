@@ -15,7 +15,6 @@
  *)
 
 open Printf
-open Operators
 
 type bytes = Cstruct.t
 

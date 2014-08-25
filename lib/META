@@ -1,13 +1,24 @@
 # OASIS_START
-# DO NOT EDIT (digest: c55f4d66a3fb84e616fae32935f433a9)
+# DO NOT EDIT (digest: bddc19069613eaa4c9abe3d6daaa3cb2)
 version = "0.4"
 description = "Packet capture tools"
-requires = "cstruct cstruct.syntax ipaddr"
-archive(byte) = "capture.cma"
-archive(byte, plugin) = "capture.cma"
-archive(native) = "capture.cmxa"
-archive(native, plugin) = "capture.cmxs"
-exists_if = "capture.cma"
+requires = "ocap.ps"
+archive(byte) = "ocap.cma"
+archive(byte, plugin) = "ocap.cma"
+archive(native) = "ocap.cmxa"
+archive(native, plugin) = "ocap.cmxs"
+exists_if = "ocap.cma"
+package "ps" (
+ version = "0.4"
+ description = "Packet capture tools"
+ requires = "cstruct cstruct.syntax ipaddr"
+ archive(byte) = "ps.cma"
+ archive(byte, plugin) = "ps.cma"
+ archive(native) = "ps.cmxa"
+ archive(native, plugin) = "ps.cmxs"
+ exists_if = "ps.cma"
+)
+
 package "mirage" (
  version = "0.4"
  description = "Packet capture tools"
