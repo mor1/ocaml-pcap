@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 89e40d311825741912098420d065030d)
+# DO NOT EDIT (digest: c977abbfae8d84753622f0dd86203e20)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -31,8 +31,6 @@ true: annot, bin_annot
 <lib/ps/*.ml{,i,y}>: pkg_ipaddr
 # Library ocap
 "lib/ocap.cmxs": use_ocap
-"lib/pcap.cmx": for-pack(Ocap)
-"lib/version.cmx": for-pack(Ocap)
 <lib/*.ml{,i,y}>: pkg_cstruct
 <lib/*.ml{,i,y}>: pkg_cstruct.syntax
 <lib/*.ml{,i,y}>: pkg_ipaddr

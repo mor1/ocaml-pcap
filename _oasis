@@ -12,9 +12,8 @@ Library "ocap"
   # Root library, supporting container formats and providing a standard iterator
   CompiledObject: best
   Path: lib/
-  Pack: true
   Install: true
-  Modules: Pcap, Version
+  Modules: Ocap, Pcap
   BuildDepends: cstruct ( >= 0.5.0 ), cstruct.syntax, ocap.ps
 
 Library "ps"
