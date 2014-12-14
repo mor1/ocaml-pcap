@@ -2,43 +2,26 @@ OASISFormat: 0.4
 Name:        ocap
 Version:     0.4
 Synopsis:    Packet capture tools
-Authors:     Anil Madhavapeddy, Dave Scott, Richard Mortier, Richard Clegg
+Authors:     Richard Mortier, Richard Clegg, Anil Madhavapeddy, Dave Scott
 License:     ISC
 Plugins:     META (0.4), DevFiles (0.4)
 BuildTools:  ocamlbuild
 
 
-Flag unix
-  Description: build the Unix binary
-  Default: false
-
-Flag mirage
-  Description: build the Mirage library
-  Default: false
-
-
-Document "ocap"
-  Title: PCAP-format docs
-  Type: ocamlbuild (0.3)
-  BuildTools+: ocamldoc
-  XOCamlbuildPath: lib/
-  XOCamlbuildModules:
-    Packet, Demux,
-    Ethernet, Arp, Icmp, Ip4, Udp4, Tcp4, Dhcp4,
-    Pcap, Flow, Unidir, Bidir
-
-
 Library "ocap"
   # Root library, supporting container formats and providing a standard iterator
-  Pack: true
+  CompiledObject: best
   Path: lib/
-  Modules: Pcap
+  Pack: true
+  Install: true
+  Modules: Pcap, Version
   BuildDepends: cstruct ( >= 0.5.0 ), cstruct.syntax, ocap.ps
 
 Library "ps"
   # Subsidiary library, providing raw and cooked packet formats
-  Pack: true
+  CompiledObject: best
   Path: lib/ps/
+  Pack: true
   FindlibParent: ocap
   FindlibName: ps
   Modules:
@@ -47,13 +30,23 @@ Library "ps"
   BuildDepends: cstruct ( >= 0.5.0 ), cstruct.syntax, ipaddr
 
 
+# Document "ocap"
+#   Title: PCAP-format docs
+#   Type: ocamlbuild (0.3)
+#   BuildTools+: ocamldoc
+#   XOCamlbuildPath: lib/
+#   XOCamlbuildModules:
+#     Packet, Demux,
+#     Ethernet, Arp, Icmp, Ip4, Udp4, Tcp4, Dhcp4,
+#     Pcap, Flow, Unidir, Bidir
+
+
 Executable "ocap"
-  Path: unix
-  MainIs: ocap.ml
-  Custom: true
   CompiledObject: best
-  Install: false
-  BuildDepends: lwt, lwt.unix, cstruct, pcap-format, oUnit, cmdliner
+  Path: unix
+  Install: true
+  MainIs: ocap_cmd.ml
+  BuildDepends: ocap, cmdliner
 
 # Library mirage
 #   Build$: flag(mirage)
