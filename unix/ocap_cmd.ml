@@ -14,80 +14,13 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-open Cmdliner;;
-open Ocap;;
+open Cmdliner
+open Ocap
+open Copts
 
 let version = "0.1+" ^ Ocap.version
 
 let str = Printf.sprintf
-
-let pr = Printf.printf
-
-(* common options, following Cmdliner documentation *)
-type verbosity = Quiet | Normal | Verbose
-let verbosity_to_string = function
-  | Quiet -> "quiet"
-  | Normal -> "normal"
-  | Verbose -> "verbose"
-
-type copts = {
-  verbosity: verbosity;
-  debug: bool;
-  no_progress: bool;
-}
-
-let copts verbosity debug no_progress = { verbosity; debug; no_progress }
-
-module Commands = struct
-
-  let print copts =
-    pr "verbosity = %s\ndebug = %b\nno_progress = %b\n"
-      (verbosity_to_string copts.verbosity) copts.debug copts.no_progress
-
-  let reform copts =
-    pr "verbosity = %s\ndebug = %b\nno_progress = %b\n"
-      (verbosity_to_string copts.verbosity) copts.debug copts.no_progress
-
-  let statistics copts =
-    pr "verbosity = %s\ndebug = %b\nno_progress = %b\n"
-      (verbosity_to_string copts.verbosity) copts.debug copts.no_progress
-
-  let help copts man_format cmds topic = match topic with
-    | None -> `Help (`Pager, None)
-    | Some topic ->
-      let topics = "topics" :: "patterns" :: "environment" :: cmds in
-      let conv, _ = Cmdliner.Arg.enum (List.rev_map (fun s -> (s, s)) topics) in
-      match conv topic with
-      | `Error e -> `Error (false, e)
-      | `Ok t when t = "topics" -> List.iter print_endline topics; `Ok ()
-      | `Ok t when List.mem t cmds -> `Help (man_format, Some t)
-      | `Ok t ->
-        let page = (topic, 7, "", "", ""), [`S topic; `P "Say something";] in
-        `Ok (Cmdliner.Manpage.print man_format Format.std_formatter page)
-
-end
-
-let copts_sect = "COMMON OPTIONS"
-
-let copts_t =
-  let docs = copts_sect in
-  let debug =
-    let doc = "Include debug output." in
-    Arg.(value & flag & info ["debug"] ~docs ~doc)
-  in
-  let verbose =
-    let doc = "Suppress output." in
-    let quiet = Quiet, Arg.info ["q"; "quiet"] ~docs ~doc in
-    let doc = "Verbose output." in
-    let verbose = Verbose, Arg.info ["v"; "verbose"] ~docs ~doc in
-    Arg.(last & vflag_all [Normal] [quiet; verbose])
-  in
-  let no_progress =
-    let doc = "Turn off progress indication." in
-    Arg.(value & flag & info ["no-progress"] ~docs ~doc)
-  in
-  Term.(pure copts $ verbose $ debug $ no_progress)
-
 
 let help_sects = [
   `S copts_sect;
