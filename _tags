@@ -1,8 +1,9 @@
 # OASIS_START
-# DO NOT EDIT (digest: 2bae42a92c23b044e1d2ef1dbe9aa41e)
+# DO NOT EDIT (digest: aba5ced54a3e312fdfcde49561d9302f)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
+true: annot, bin_annot
 <**/.svn>: -traverse
 <**/.svn>: not_hygienic
 ".bzr": -traverse
@@ -25,15 +26,29 @@
 "lib/ps/udp4.cmx": for-pack(Ps)
 "lib/ps/tcp4.cmx": for-pack(Ps)
 "lib/ps/dhcp4.cmx": for-pack(Ps)
-<lib/ps/*.ml{,i}>: pkg_cstruct
-<lib/ps/*.ml{,i}>: pkg_cstruct.syntax
-<lib/ps/*.ml{,i}>: pkg_ipaddr
+<lib/ps/*.ml{,i,y}>: pkg_cstruct
+<lib/ps/*.ml{,i,y}>: pkg_cstruct.syntax
+<lib/ps/*.ml{,i,y}>: pkg_ipaddr
 # Library ocap
 "lib/ocap.cmxs": use_ocap
 "lib/pcap.cmx": for-pack(Ocap)
-<lib/*.ml{,i}>: pkg_cstruct
-<lib/*.ml{,i}>: pkg_cstruct.syntax
-<lib/*.ml{,i}>: pkg_ipaddr
-<lib/*.ml{,i}>: use_ps
+<lib/*.ml{,i,y}>: pkg_cstruct
+<lib/*.ml{,i,y}>: pkg_cstruct.syntax
+<lib/*.ml{,i,y}>: pkg_ipaddr
+<lib/*.ml{,i,y}>: use_ps
+# Executable ocap
+<unix/ocap.{native,byte}>: pkg_cmdliner
+<unix/ocap.{native,byte}>: pkg_cstruct
+<unix/ocap.{native,byte}>: pkg_lwt
+<unix/ocap.{native,byte}>: pkg_lwt.unix
+<unix/ocap.{native,byte}>: pkg_oUnit
+<unix/ocap.{native,byte}>: pkg_pcap-format
+<unix/*.ml{,i,y}>: pkg_cmdliner
+<unix/*.ml{,i,y}>: pkg_cstruct
+<unix/*.ml{,i,y}>: pkg_lwt
+<unix/*.ml{,i,y}>: pkg_lwt.unix
+<unix/*.ml{,i,y}>: pkg_oUnit
+<unix/*.ml{,i,y}>: pkg_pcap-format
+<unix/ocap.{native,byte}>: custom
 # OASIS_STOP
 <**/*.ml{,i}>: syntax_camlp4o, pkg_camlp4

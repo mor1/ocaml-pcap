@@ -4,7 +4,7 @@ Version:     0.4
 Synopsis:    Packet capture tools
 Authors:     Anil Madhavapeddy, Dave Scott, Richard Mortier, Richard Clegg
 License:     ISC
-Plugins:     META (0.2), DevFiles (0.2)
+Plugins:     META (0.4), DevFiles (0.4)
 BuildTools:  ocamlbuild
 
 
@@ -29,12 +29,14 @@ Document "ocap"
 
 
 Library "ocap"
+  # Root library, supporting container formats and providing a standard iterator
   Pack: true
   Path: lib/
   Modules: Pcap
   BuildDepends: cstruct ( >= 0.5.0 ), cstruct.syntax, ocap.ps
 
 Library "ps"
+  # Subsidiary library, providing raw and cooked packet formats
   Pack: true
   Path: lib/ps/
   FindlibParent: ocap
@@ -44,6 +46,14 @@ Library "ps"
     Ethernet, Arp, Icmp, Ip4, Udp4, Tcp4, Dhcp4
   BuildDepends: cstruct ( >= 0.5.0 ), cstruct.syntax, ipaddr
 
+
+Executable "ocap"
+  Path: unix
+  MainIs: ocap.ml
+  Custom: true
+  CompiledObject: best
+  Install: false
+  BuildDepends: lwt, lwt.unix, cstruct, pcap-format, oUnit, cmdliner
 
 # Library mirage
 #   Build$: flag(mirage)
