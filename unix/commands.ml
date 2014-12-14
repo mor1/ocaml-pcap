@@ -1,20 +1,34 @@
 open Copts
 
-let pr = Printf.printf
+(* conditional printers, conditioned on copts *)
+let pr copts = match copts.verbosity with
+  | Quiet -> Printf.ifprintf stderr
+  | Normal -> Printf.fprintf stderr
+  | Verbose -> Printf.fprintf stderr
+let vpr copts = match copts.verbosity with
+  | Quiet -> Printf.ifprintf stderr
+  | Normal -> Printf.ifprintf stderr
+  | Verbose -> Printf.fprintf stderr
 
 let print copts =
-  pr "verbosity = %s\ndebug = %b\nno_progress = %b\n"
-    (verbosity_to_string copts.verbosity) copts.debug copts.no_progress
+  let pr, vpr = pr copts, vpr copts in
+  vpr "verbosity = %s\ndebug = %b\nno_progress = %b\n"
+    (verbosity_to_string copts.verbosity) copts.debug copts.no_progress;
+  pr "HELLO\n%!"
 
 let reform copts =
+  let pr, vpr = pr copts, vpr copts in
   pr "verbosity = %s\ndebug = %b\nno_progress = %b\n"
     (verbosity_to_string copts.verbosity) copts.debug copts.no_progress
 
 let statistics copts =
+  let pr, vpr = pr copts, vpr copts in
   pr "verbosity = %s\ndebug = %b\nno_progress = %b\n"
     (verbosity_to_string copts.verbosity) copts.debug copts.no_progress
 
-let help copts man_format cmds topic = match topic with
+let help copts man_format cmds topic =
+  let pr, vpr = pr copts, vpr copts in
+  match topic with
   | None -> `Help (`Pager, None)
   | Some topic ->
     let topics = "topics" :: "patterns" :: "environment" :: cmds in
