@@ -190,7 +190,11 @@ val to_string: h -> string
 
 (** A captured PCAP packet: a header {! h}, the packet {! Packet.t} and the raw
     bytes {! Cstruct.t} for error reporting. *)
-type t = PCAP of h * Packet.t * Cstruct.t
+type t = PCAP of h * Ps.Packet.t * Cstruct.t
+
+val iter:
+  Cstruct.t -> (Cstruct.t -> Ps.Packet.t) -> (fh * t Cstruct.iter) option
+
 
 (*
 
@@ -202,7 +206,6 @@ type t = PCAP of h * Packet.t * Cstruct.t
   (* Perhaps also break this down a bit: eg., given some `fd` type: *)
   val fd_is_valid: fd -> bool
   val fd_to_stream: fd -> t Stream.t
-
 
 (* make this an lwt_stream thing? *)
 val iter: Cstruct.t -> (Cstruct.t -> Packet.t) -> (fh * t Cstruct.iter) option

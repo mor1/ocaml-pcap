@@ -172,7 +172,7 @@ let to_str h =
 let to_string h =
   sprintf "secs:%lu usecs:%lu caplen:%lu len:%lu" h.secs h.usecs h.caplen h.len
 
-type t = PCAP of h * Packet.t * Cstruct.t
+type t = PCAP of h * Ps.Packet.t * Cstruct.t
 
 let iter buf demuxf =
   let pcap_hdr =
