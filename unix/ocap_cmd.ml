@@ -34,12 +34,15 @@ let help_sects = [
 ]
 
 let print_t =
+  let filenames =
+    Arg.(value & (pos_all file) [] & info [] ~docv:"FILENAMEs")
+  in
   let doc = "render a capture file to stdout" in
   let man =
     [`S "DESCRIPTION";
      `P "Renders a capture file to stdout. ..."] @ help_sects
   in
-  Term.(pure Commands.print $ copts_t),
+  Term.(pure Commands.print $ copts_t $ filenames),
   Term.info "print" ~doc ~sdocs:copts_sect ~man
 
 let reform_t =
