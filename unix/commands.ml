@@ -44,9 +44,14 @@ let print copts filenames =
         %s\n%!" file.Seq.filename file.Seq.filesize (Pcap.fh_to_str fileheader);
       let npackets =
         Cstruct.fold (fun acc pkt ->
-          let Pcap.PCAP(h, p, _) = pkt in
-          printf "%d: PCAP(%s)%s\n%!" acc (Pcap.to_str h) (Packet.to_str p);
-          acc+1
+            let Pcap.PCAP(h, p, _) = pkt in
+            let pcap_to_str, pkt_to_str =
+              match copts.verbosity with
+              | Quiet | Normal -> Pcap.to_str, Ps.Packet.to_str
+              | Verbose -> Pcap.to_string, Ps.Packet.to_string
+            in
+            printf "%d: PCAP(%s)%s\n%!" acc (pcap_to_str h) (pkt_to_str p);
+            acc+1
           ) packets 0
       in
       printf "### END: npackets:%d\n%!" npackets
