@@ -32,10 +32,6 @@ let print copts filenames =
   vpr "verbosity = %s\ndebug = %b\nno_progress = %b\n"
     (verbosity_to_string copts.verbosity) copts.debug copts.no_progress;
 
-  pr "HELLO\n%!";
-  (* XXX how to stop type inference deciding that `pr` must have only one *)
-  (* parameter above? *)
-
   let open Printf in
   let files = List.map Seq.of_filename filenames in
   List.iter (fun (file, (fileheader,packets)) ->
@@ -55,9 +51,7 @@ let print copts filenames =
           ) packets 0
       in
       printf "### END: npackets:%d\n%!" npackets
-    ) files;
-
-  pr "GOODBYE\n%!"
+    ) files
 
 let reform copts =
   let pr, vpr = pr copts, vpr copts in
