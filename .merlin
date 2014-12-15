@@ -1,3 +1,5 @@
 PKG lwt cstruct ipaddr ocap.ps cmdliner
 S ./lib
+S ./unix
 B _build/lib
+B _build/unix
