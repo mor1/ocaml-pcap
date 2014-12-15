@@ -40,7 +40,11 @@ let print_t =
   let doc = "render a capture file to stdout" in
   let man =
     [`S "DESCRIPTION";
-     `P "Renders a capture file to stdout. ..."] @ help_sects
+     `P "Renders a capture file to stdout. Readability can be improved by\n\
+         piping through \
+         $(i, gawk -- '{  gsub(\"\\\\\\\\|\", \"\\\\n\\\\t|\"); print \\$0 }')\
+        "
+    ] @ help_sects
   in
   Term.(pure Commands.print $ copts_t $ filenames),
   Term.info "print" ~doc ~sdocs:copts_sect ~man
