@@ -45,7 +45,7 @@ Executable "ocap"
   Path: unix
   Install: true
   MainIs: ocap_cmd.ml
-  BuildDepends: ocap, cmdliner
+  BuildDepends: ocap, cmdliner, lwt, lwt.unix
 
 # Library mirage
 #   Build$: flag(mirage)
