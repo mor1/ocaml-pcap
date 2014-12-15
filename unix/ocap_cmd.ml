@@ -59,12 +59,15 @@ let reform_t =
   Term.info "reform" ~doc ~sdocs:copts_sect ~man
 
 let statistics_t =
+  let filenames =
+    Arg.(value & (pos_all file) [] & info [] ~docv:"FILENAMEs")
+  in
   let doc = "render capture file statistics" in
   let man =
     [`S "DESCRIPTION";
      `P "Renders statistics about a capture file. ..."] @ help_sects
   in
-  Term.(pure Commands.statistics $ copts_t),
+  Term.(pure Commands.statistics $ copts_t $ filenames),
   Term.info "statistics" ~doc ~sdocs:copts_sect ~man
 
 let help_t =

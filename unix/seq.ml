@@ -16,6 +16,8 @@
 
 open Lwt
 
+type 'a t = 'a Cstruct.iter
+
 type metadata = {
   filename: string;
   filesize: int;
@@ -24,10 +26,6 @@ type metadata = {
 let kB = 1024
 let mB = 1024*kB
 let buffer_size = 4*mB
-
-let flags = [Unix.O_RDONLY]
-let mode = Lwt_io.Input
-let perm = 0o440
 
 let of_filename filename =
   let fd = Unix.(openfile filename [O_RDONLY] 0) in
@@ -42,3 +40,9 @@ let of_filename filename =
   | None -> failwith "PCAP error: failed to read magic number!"
   | Some (pcap_fileheader, pcap_packets) ->
     ({ filename; filesize }, (pcap_fileheader, pcap_packets))
+
+let fold f acc seq =
+  Cstruct.fold f seq acc
+
+let iter f seq =
+  fold (fun () -> f) () seq

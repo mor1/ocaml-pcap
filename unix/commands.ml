@@ -39,7 +39,7 @@ let print copts filenames =
         ### START: filename:%s size:%d\n\
         %s\n%!" file.Seq.filename file.Seq.filesize (Pcap.fh_to_str fileheader);
       let npackets =
-        Cstruct.fold (fun acc pkt ->
+        Seq.fold (fun acc pkt ->
             let Pcap.PCAP(h, p, _) = pkt in
             let pcap_to_str, pkt_to_str =
               match copts.verbosity with
@@ -48,23 +48,66 @@ let print copts filenames =
             in
             printf "%d: PCAP(%s)%s\n%!" acc (pcap_to_str h) (pkt_to_str p);
             acc+1
-          ) packets 0
+          ) 0 packets
       in
       printf "### END: npackets:%d\n%!" npackets
     ) files
 
 let reform copts =
-  let pr, vpr = pr copts, vpr copts in
-  pr "verbosity = %s\ndebug = %b\nno_progress = %b\n"
+  let _pr, vpr = pr copts, vpr copts in
+  vpr "verbosity = %s\ndebug = %b\nno_progress = %b\n"
     (verbosity_to_string copts.verbosity) copts.debug copts.no_progress
 
-let statistics copts =
+type time_t = {
+  secs: int32;
+  usecs: int32;
+}
+let time_t_to_string t =
+  Printf.sprintf "%ld.%06ld" t.secs t.usecs
+
+type statistics = {
+  mutable packets: int32;
+  mutable bytes: int32;
+  mutable capbytes: int32;
+  mutable first: time_t;
+  mutable last: time_t;
+}
+let statistics_to_string s =
+  Printf.sprintf
+    "npackets:%ld bytes:%ld capbytes:%ld first:%s last:%s"
+    s.packets s.bytes s.capbytes
+    (time_t_to_string s.first) (time_t_to_string s.last)
+
+let statistics copts filenames =
   let pr, vpr = pr copts, vpr copts in
-  pr "verbosity = %s\ndebug = %b\nno_progress = %b\n"
-    (verbosity_to_string copts.verbosity) copts.debug copts.no_progress
+  vpr "verbosity = %s\ndebug = %b\nno_progress = %b\n"
+    (verbosity_to_string copts.verbosity) copts.debug copts.no_progress;
+
+  let files = List.map Seq.of_filename filenames in
+  List.iter (fun (file, (fileheader, packets)) ->
+      let zero = { packets=0l;
+                   bytes=0l;
+                   capbytes=0l;
+                   first={secs=0l;usecs=0l};
+                   last={secs=0l;usecs=0l}
+                 }
+      in
+      let stats =
+        Seq.fold (fun s pkt ->
+            let Pcap.PCAP(h,_,_) = pkt in
+            s.packets <- s.packets + 1l;
+            s.bytes <- s.bytes + h.len;
+            s.capbytes <- s.capbytes + h.caplen;
+            s
+          ) zero packets
+      in
+      Printf.printf "filename:%s %s\n%!"
+        file.Seq.filename (statistics_to_string stats)
+    ) files
+
 
 let help copts man_format cmds topic =
-  let pr, vpr = pr copts, vpr copts in
+  let _pr, _vpr = pr copts, vpr copts in
   match topic with
   | None -> `Help (`Pager, None)
   | Some topic ->
