@@ -75,8 +75,8 @@ module LE = struct
   cstruct pcap_packet {
     uint32_t ts_sec;         (* timestamp seconds *)
     uint32_t ts_usec;        (* timestamp microseconds *)
-    uint32_t incl_len;       (* number of octets of packet saved in file *)
-    uint32_t orig_len        (* actual length of packet *)
+    uint32_t caplen;         (* number of octets of packet saved in file *)
+    uint32_t len             (* actual length of packet *)
   } as little_endian
 
 end
@@ -97,8 +97,8 @@ module BE = struct
   cstruct pcap_packet {
     uint32_t ts_sec;         (* timestamp seconds *)
     uint32_t ts_usec;        (* timestamp microseconds *)
-    uint32_t incl_len;       (* number of octets of packet saved in file *)
-    uint32_t orig_len        (* actual length of packet *)
+    uint32_t caplen;         (* number of octets of packet saved in file *)
+    uint32_t len             (* actual length of packet *)
   } as big_endian
 end
 
@@ -127,13 +127,13 @@ module type HDR = sig
 
   val get_pcap_packet_ts_sec: Cstruct.t -> int32
   val get_pcap_packet_ts_usec: Cstruct.t -> int32
-  val get_pcap_packet_incl_len: Cstruct.t -> int32
-  val get_pcap_packet_orig_len: Cstruct.t -> int32
+  val get_pcap_packet_caplen: Cstruct.t -> int32
+  val get_pcap_packet_len: Cstruct.t -> int32
 
   val set_pcap_packet_ts_sec: Cstruct.t -> int32 -> unit
   val set_pcap_packet_ts_usec: Cstruct.t -> int32 -> unit
-  val set_pcap_packet_incl_len: Cstruct.t -> int32 -> unit
-  val set_pcap_packet_orig_len: Cstruct.t -> int32 -> unit
+  val set_pcap_packet_caplen: Cstruct.t -> int32 -> unit
+  val set_pcap_packet_len: Cstruct.t -> int32 -> unit
 end
 
 type fh = {
@@ -190,8 +190,8 @@ let iter buf demuxf =
     let h buf =
       { secs = H.get_pcap_packet_ts_sec buf;
         usecs = H.get_pcap_packet_ts_usec buf;
-        caplen = H.get_pcap_packet_incl_len buf;
-        len = H.get_pcap_packet_orig_len buf
+        caplen = H.get_pcap_packet_caplen buf;
+        len = H.get_pcap_packet_len buf
       }
     in
 
@@ -211,7 +211,7 @@ let iter buf demuxf =
       fh, Cstruct.iter
         (fun buf ->
           let offset_delta =
-            sizeof_pcap_packet + (Int32.to_int (H.get_pcap_packet_incl_len buf))
+            sizeof_pcap_packet + (Int32.to_int (H.get_pcap_packet_caplen buf))
           in
           Some offset_delta
         )
