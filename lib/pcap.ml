@@ -207,16 +207,23 @@ let iter buf demuxf =
       }
     in
     let _, buf = Cstruct.split buf sizeof_pcap_header in
+
     Some (
       fh, Cstruct.iter
-        (fun buf ->
-          let offset_delta =
-            sizeof_pcap_packet + (Int32.to_int (H.get_pcap_packet_caplen buf))
-          in
-          Some offset_delta
-        )
-        (fun buf ->
-           PCAP(h buf, demuxf (Cstruct.shift buf sizeof_pcap_packet), buf)
-        )
-        buf
+            ~errfn:(fun buf i plen body ->
+               None
+            )
+            (fun buf ->
+               let offset_delta =
+                 sizeof_pcap_packet + (Int32.to_int (H.get_pcap_packet_caplen buf))
+               in
+               Some offset_delta
+            )
+            (fun buf ->
+               let hdr = h buf in
+               let buf = Cstruct.shift buf sizeof_pcap_packet in
+               let payload = demuxf buf in
+               PCAP(hdr, payload, buf)
+            )
+            buf
     )
