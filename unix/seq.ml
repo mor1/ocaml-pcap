@@ -40,9 +40,3 @@ let of_filename filename =
   | None -> failwith "PCAP error: failed to read magic number!"
   | Some (pcap_fileheader, pcap_packets) ->
     ({ filename; filesize }, (pcap_fileheader, pcap_packets))
-
-let fold f acc seq =
-  Cstruct.fold f seq acc
-
-let iter f seq =
-  fold (fun () -> f) () seq

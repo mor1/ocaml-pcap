@@ -39,7 +39,7 @@ let print copts filenames =
         ### START: filename:%s size:%d\n\
         %s\n%!" file.Seq.filename file.Seq.filesize (Pcap.fh_to_str fileheader);
       let npackets =
-        Seq.fold (fun acc pkt ->
+        Cstruct.fold (fun acc pkt ->
             let Pcap.PCAP(h, p, _) = pkt in
             let pcap_to_str, pkt_to_str =
               match copts.verbosity with
@@ -48,7 +48,7 @@ let print copts filenames =
             in
             printf "%d: PCAP(%s)%s\n%!" acc (pcap_to_str h) (pkt_to_str p);
             acc+1
-          ) 0 packets
+          ) packets 0
       in
       printf "### END: npackets:%d\n%!" npackets
     ) files
@@ -93,13 +93,14 @@ let statistics copts filenames =
                  }
       in
       let stats =
-        Seq.fold (fun s pkt ->
-            let Pcap.PCAP(h,_,_) = pkt in
-            s.packets <- s.packets + 1l;
-            s.bytes <- s.bytes + h.len;
-            s.capbytes <- s.capbytes + h.caplen;
+        Cstruct.fold (fun s pkt ->
+            let open Pcap in
+            let PCAP(h,_,_) = pkt in
+            s.packets <- Int32.add s.packets 1l;
+            s.bytes <- Int32.add s.bytes h.len;
+            s.capbytes <- Int32.add s.capbytes h.caplen;
             s
-          ) zero packets
+          ) packets zero
       in
       Printf.printf "filename:%s %s\n%!"
         file.Seq.filename (statistics_to_string stats)

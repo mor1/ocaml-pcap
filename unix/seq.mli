@@ -22,6 +22,3 @@ type metadata = {
 }
 
 val of_filename: string -> metadata * (Pcap.fh * Pcap.t t)
-
-val fold: ('b -> 'a -> 'b) -> 'b -> 'a t -> 'b
-val iter: ('a -> unit) -> 'a t -> unit
