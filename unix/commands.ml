@@ -99,6 +99,9 @@ let statistics copts filenames =
             s.packets <- Int32.add s.packets 1l;
             s.bytes <- Int32.add s.bytes h.len;
             s.capbytes <- Int32.add s.capbytes h.caplen;
+            if s.first = { secs=0l; usecs=0l } then
+              s.first <- { secs=h.secs; usecs=h.usecs };
+            s.last <- { secs=h.secs; usecs=h.usecs };
             s
           ) packets zero
       in
