@@ -33,11 +33,11 @@ let print copts filenames =
     (verbosity_to_string copts.verbosity) copts.debug copts.no_progress;
 
   let open Printf in
-  let files = List.map Seq.of_filename filenames in
+  let files = List.map Trace.of_filename filenames in
   List.iter (fun (file, (fileheader,packets)) ->
       printf "\
         ### START: filename:%s size:%d\n\
-        %s\n%!" file.Seq.filename file.Seq.filesize (Pcap.fh_to_str fileheader);
+        %s\n%!" file.Trace.filename file.Trace.filesize (Pcap.fh_to_str fileheader);
       let npackets =
         Cstruct.fold (fun acc pkt ->
             let Pcap.PCAP(h, p, _) = pkt in
@@ -83,7 +83,7 @@ let statistics copts filenames =
   vpr "verbosity = %s\ndebug = %b\nno_progress = %b\n"
     (verbosity_to_string copts.verbosity) copts.debug copts.no_progress;
 
-  let files = List.map Seq.of_filename filenames in
+  let files = List.map Trace.of_filename filenames in
   List.iter (fun (file, (fileheader, packets)) ->
       let zero = { packets=0l;
                    bytes=0l;
@@ -103,7 +103,7 @@ let statistics copts filenames =
           ) packets zero
       in
       Printf.printf "filename:%s %s\n%!"
-        file.Seq.filename (statistics_to_string stats)
+        file.Trace.filename (statistics_to_string stats)
     ) files
 
 

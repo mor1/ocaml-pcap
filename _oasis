@@ -13,7 +13,7 @@ Library "ocap"
   CompiledObject: best
   Path: lib/
   Install: true
-  Modules: Ocap, Pcap
+  Modules: Ocap, Pcap, Trace
   BuildDepends: cstruct ( >= 0.5.0 ), cstruct.syntax, ocap.ps
 
 Library "ps"

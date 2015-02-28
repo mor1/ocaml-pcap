@@ -14,11 +14,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-type 'a t = 'a Cstruct.iter
+type 'a t = unit -> 'a option
+type buf = Cstruct.t
 
-type metadata = {
-  filename: string;
-  filesize: int;
-}
-
-val of_filename: string -> metadata * (Pcap.fh * Pcap.t t)
+val iter: (buf -> int option) -> (buf -> 'a) -> buf -> 'a t
+val fold: ('b -> 'a -> 'b) -> 'a t -> 'b -> 'b
