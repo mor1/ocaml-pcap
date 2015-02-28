@@ -1,5 +1,5 @@
 open Cmdliner
-  
+
 (* common options, following Cmdliner documentation *)
 type verbosity = Quiet | Normal | Verbose
 let verbosity_to_string = function
