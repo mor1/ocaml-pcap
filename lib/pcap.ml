@@ -209,10 +209,7 @@ let iter buf demuxf =
     let _, buf = Cstruct.split buf sizeof_pcap_header in
 
     Some (
-      fh, Cstruct.iter
-            ~errfn:(fun buf i plen body ->
-               None
-            )
+      fh, Seq.iter
             (fun buf ->
                let offset_delta =
                  sizeof_pcap_packet + (Int32.to_int (H.get_pcap_packet_caplen buf))
