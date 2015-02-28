@@ -86,24 +86,33 @@ let reform copts filenames ofilename =
       ifd
     )
   in
-  let process ifds =
-    let open Ocap in
+
+  let streams = List.map (fun ifd -> (ifd (), ifd)) ifds in
+
+  let process streams =
     let open Pcap in
-    ifds |> List.map (fun ifd -> ifd ()) |> List.sort (fun lp rp ->
-        match lp, rp with
-        | None, _ -> -1
-        | _, None -> 1
-        | Some (PCAP (lh, _, _)), Some (PCAP (rh, _, _)) ->
-          Int32.to_int
-            (if lh.secs = rh.secs then Int32.sub lh.usecs rh.usecs else
-               Int32.sub lh.secs rh.secs)
-      )
+    let cmp (lp,_) (rp,_) = match lp, rp with
+      | None, _ -> -1
+      | _, None -> 1
+      | Some (PCAP (lh, _, _)), Some (PCAP (rh, _, _)) ->
+        Int32.to_int
+          (if lh.secs = rh.secs then Int32.sub lh.usecs rh.usecs else
+             Int32.sub lh.secs rh.secs)
+    in
+    let rec process_ ss =
+      match List.sort cmp ss with
+      | [] -> ()
+      | (p,s) :: tl ->
+        let rest = match p with
+          | None -> tl
+          | Some PCAP(h,p,_) ->
+            Printf.printf "PCAP(%s)%s\n%!" (Pcap.to_str h) (Ps.Packet.to_str p);
+            (s (), s) :: tl
+        in process_ rest
+    in
+    process_ streams
   in
-  process ifds |> List.iter (fun p -> let open Pcap in match p with
-      | None -> Printf.printf ".\n%!"
-      | Some PCAP(h,p,_) ->
-        Printf.printf "PCAP(%s)%s\n%!" (Pcap.to_str h) (Ps.Packet.to_str p)
-    )
+  process streams
 
 type time_t = {
   secs: int32;
