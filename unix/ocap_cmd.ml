@@ -50,12 +50,19 @@ let print_t =
   Term.info "print" ~doc ~sdocs:copts_sect ~man
 
 let reform_t =
+  let filenames =
+    Arg.(non_empty & (pos_left ~rev:true 0 file) [] & info [] ~docv:"FILENAMEs")
+  in
+  let ofilename =
+    Arg.(required & pos ~rev:true 0 (some string) None
+         & info [] ~docv:"FILENAME")
+  in
   let doc = "split/merge capture files" in
   let man =
     [`S "DESCRIPTION";
      `P "Split or merge capture files. ..."] @ help_sects
   in
-  Term.(pure Commands.reform $ copts_t),
+  Term.(pure Commands.reform $ copts_t $ filenames $ ofilename),
   Term.info "reform" ~doc ~sdocs:copts_sect ~man
 
 let statistics_t =

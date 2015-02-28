@@ -53,10 +53,57 @@ let print copts filenames =
       printf "### END: npackets:%d\n%!" npackets
     ) files
 
-let reform copts =
+let reform copts filenames ofilename =
   let _pr, vpr = pr copts, vpr copts in
   vpr "verbosity = %s\ndebug = %b\nno_progress = %b\n"
-    (verbosity_to_string copts.verbosity) copts.debug copts.no_progress
+    (verbosity_to_string copts.verbosity) copts.debug copts.no_progress;
+
+  let write fd buf =
+    let s = Cstruct.to_string buf in
+    Unix.write fd s 0 (String.length s)
+  in
+
+  let creat filename =
+    let fd = Unix.(openfile filename [O_WRONLY; O_CREAT; O_TRUNC] 0o644) in
+    let buf = Cstruct.create Pcap.sizeof_pcap_header in
+    let open Pcap in (* assume LE platform for now *)
+    LE.set_pcap_header_magic_number  buf magic_number;
+    LE.set_pcap_header_version_major buf major_version;
+    LE.set_pcap_header_version_minor buf minor_version;
+    LE.set_pcap_header_thiszone      buf 0x0000_0000_l; (* GMT *)
+    LE.set_pcap_header_sigfigs       buf 0x0000_0000_l;
+    LE.set_pcap_header_snaplen       buf 0x0000_ffff_l;
+    LE.set_pcap_header_network       buf 0x0000_0001_l;
+    let n = write fd buf in
+    assert (n = 24);
+    fd
+  in
+
+  let ofd = creat ofilename in
+  let ifds = filenames |> List.map (fun fn ->
+      (* assumes all inputs are valid pcap trace files *)
+      let (_, (_, ifd)) = Trace.of_filename fn in
+      ifd
+    )
+  in
+  let process ifds =
+    let open Ocap in
+    let open Pcap in
+    ifds |> List.map (fun ifd -> ifd ()) |> List.sort (fun lp rp ->
+        match lp, rp with
+        | None, _ -> -1
+        | _, None -> 1
+        | Some (PCAP (lh, _, _)), Some (PCAP (rh, _, _)) ->
+          Int32.to_int
+            (if lh.secs = rh.secs then Int32.sub lh.usecs rh.usecs else
+               Int32.sub lh.secs rh.secs)
+      )
+  in
+  process ifds |> List.iter (fun p -> let open Pcap in match p with
+      | None -> Printf.printf ".\n%!"
+      | Some PCAP(h,p,_) ->
+        Printf.printf "PCAP(%s)%s\n%!" (Pcap.to_str h) (Ps.Packet.to_str p)
+    )
 
 type time_t = {
   secs: int32;
