@@ -1,5 +1,5 @@
 OASISFormat: 0.4
-Name:        ocap
+Name:        pcap-format
 Version:     0.4
 Synopsis:    Packet capture tools
 Authors:     Richard Mortier, Richard Clegg, Anil Madhavapeddy, Dave Scott
@@ -13,7 +13,7 @@ Library "ocap"
   CompiledObject: best
   Path: lib/
   Install: true
-  Modules: Ocap, Pcap, Trace
+  Modules: Ocap, Pcap, Seq
   BuildDepends: cstruct ( >= 0.5.0 ), cstruct.syntax, ocap.ps
 
 Library "ps"
@@ -22,12 +22,26 @@ Library "ps"
   Path: lib/ps/
   Pack: true
   FindlibParent: ocap
-  FindlibName: ps
   Modules:
     Buf, Packet, Demux,
     Ethernet, Arp, Icmp, Ip4, Udp4, Tcp4, Dhcp4
   BuildDepends: cstruct ( >= 0.5.0 ), cstruct.syntax, ipaddr
 
+Library "ocap.unix"
+  CompiledObject: best
+  Path: unix
+  Install: true
+  Modules: Trace
+  BuildDepends: cstruct ( >= 0.5.0 ), ocap
+
+Executable "ocap"
+  CompiledObject: best
+  Path: unix
+  Install: true
+  MainIs: ocap_cmd.ml
+  BuildDepends: ocap, ocap.unix, cmdliner, lwt, lwt.unix
+
+###
 
 # Document "ocap"
 #   Title: PCAP-format docs
@@ -38,14 +52,6 @@ Library "ps"
 #     Packet, Demux,
 #     Ethernet, Arp, Icmp, Ip4, Udp4, Tcp4, Dhcp4,
 #     Pcap, Flow, Unidir, Bidir
-
-
-Executable "ocap"
-  CompiledObject: best
-  Path: unix
-  Install: true
-  MainIs: ocap_cmd.ml
-  BuildDepends: ocap, cmdliner, lwt, lwt.unix
 
 # Library mirage
 #   Build$: flag(mirage)

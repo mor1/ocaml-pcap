@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: e487c25e8e145195b21a53cdaf62f6b6)
+# DO NOT EDIT (digest: d16ad8248bad4895124467916f5d8b3a)
 version = "0.4"
 description = "Packet capture tools"
 requires = "cstruct cstruct.syntax ocap.ps"
@@ -8,6 +8,17 @@ archive(byte, plugin) = "ocap.cma"
 archive(native) = "ocap.cmxa"
 archive(native, plugin) = "ocap.cmxs"
 exists_if = "ocap.cma"
+package "unix" (
+ version = "0.4"
+ description = "Packet capture tools"
+ requires = "cstruct ocap"
+ archive(byte) = "ocap.unix.cma"
+ archive(byte, plugin) = "ocap.unix.cma"
+ archive(native) = "ocap.unix.cmxa"
+ archive(native, plugin) = "ocap.unix.cmxs"
+ exists_if = "ocap.unix.cma"
+)
+
 package "ps" (
  version = "0.4"
  description = "Packet capture tools"
