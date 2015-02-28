@@ -28,7 +28,7 @@ let help_sects = [
   `S "MORE HELP";
   `P " `$(mname) $(i,COMMAND) --help' for help on a single command."; `Noblank;
   `P " `$(mname) help print' for help on displaying captures."; `Noblank;
-  `P " `$(mname) help reform' for help on displaying captures."; `Noblank;
+  `P " `$(mname) help reform' for help on reforming capture files."; `Noblank;
   `P " `$(mname) help statistics' for help on capture file statistics.";
   `S "BUGS"; `P "Check bug reports at http://github.com/mor1/ocap/issues/.";
 ]
