@@ -1,2 +1,2 @@
-PKG ocap, lwt
+PKG ocap, lwt, ocap.ps, ocap.unix
 REC
