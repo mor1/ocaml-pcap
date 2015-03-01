@@ -19,7 +19,7 @@ Based off Anil Madhavapeddy's "cstruct" example code.
     + options: output control by filesize (bytes), #packets, duration (secs);
       input control by timerange, index range (if single input)
   + print
-    + single line summary
+    + single line summary (+ tcpdump compat mode + tshark compat mode)
     + formatted multi-line summary
     + options: header field (commented out!); hex payload dump when verbose
   + statistics
