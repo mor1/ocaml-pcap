@@ -105,8 +105,15 @@ let reform copts filenames ofilename =
       | (p,s) :: tl ->
         let rest = match p with
           | None -> tl
-          | Some PCAP(h,p,_) ->
-            Printf.printf "PCAP(%s)%s\n%!" (Pcap.to_str h) (Ps.Packet.to_str p);
+          | Some PCAP(h,b,bs) ->
+            let buf = Cstruct.create Pcap.sizeof_pcap_packet in
+            let open Pcap in (* LE platform assumed above *)
+            LE.set_pcap_packet_ts_sec buf h.secs;
+            LE.set_pcap_packet_ts_usec buf h.usecs;
+            LE.set_pcap_packet_caplen buf h.caplen;
+            LE.set_pcap_packet_len buf h.len;
+            let n = write ofd buf in assert (n=16);
+            let n = write ofd bs in assert (n=Cstruct.len bs);
             (s (), s) :: tl
         in process_ rest
     in
