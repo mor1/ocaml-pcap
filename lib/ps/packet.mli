@@ -32,6 +32,8 @@
 (** Recursive type representing a captured packet. *)
 type t =
   | ETH of Ethernet.h * t
+  | VLAN of Ethernet.Vlan.h * t
+
   | IP4 of Ip4.h * t
   | TCP4 of Tcp4.h * t
   | UDP4 of Udp4.h * t

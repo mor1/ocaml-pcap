@@ -18,6 +18,8 @@ open Printf
 
 type t =
   | ETH of Ethernet.h * t
+  | VLAN of Ethernet.Vlan.h * t
+
   | IP4 of Ip4.h * t
   | TCP4 of Tcp4.h * t
   | UDP4 of Udp4.h * t
@@ -34,6 +36,9 @@ let to_str pkt =
     match pkt with
     | ETH (h, p) ->
       let s = sprintf "%s|ETH(%s)" str (Ethernet.to_str h) in aux p s
+    | VLAN (h, p) ->
+      let s = sprintf "%s|VLAN(%s)" str (Ethernet.Vlan.to_str h) in aux p s
+
     | IP4 (h, p) ->
       let s = sprintf "%s|IP4(%s)" str (Ip4.to_str h) in aux p s
     | TCP4 (h, p) ->
@@ -55,6 +60,9 @@ let to_string pkt =
     match pkt with
     | ETH (h, p) ->
       let s = sprintf "%s|ETH(%s)" str (Ethernet.to_string h) in aux p s
+    | VLAN (h, p) ->
+      let s = sprintf "%s|VLAN(%s)" str (Ethernet.Vlan.to_string h) in aux p s
+
     | IP4 (h, p) ->
       let s = sprintf "%s|IP4(%s)" str (Ip4.to_string h) in aux p s
     | TCP4 (h, p) ->

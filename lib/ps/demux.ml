@@ -53,6 +53,12 @@ let eth_demux st ethertype_demux buf =
   let buf = Cstruct.shift buf sizeof_ethernet in
   ETH(eh, (ethertype_demux st eh) buf)
 
+let vlan_demux st ethertype_demux buf =
+  let open Ethernet.Vlan in
+  let vh = h buf in
+  let buf = Cstruct.shift buf sizeof_vlan in
+  VLAN(vh, (ethertype_demux st vh) buf)
+
 (** proto_demuxf: 'st -> h -> demuxf *)
 
 let udp4_port_demux st uh =
@@ -81,10 +87,20 @@ let ipproto_demux st ih =
     | TCP -> tcp4_demux st tcp4_port_demux
     | _ -> data_demux
 
+let rec vlan_ethertype_demux st vh =
+  let open Ethernet in
+  match int_to_ethertype vh.Vlan.ethertype with
+  | None -> data_demux
+  | Some t -> match t with
+    | IP4 -> ip_demux st ipproto_demux
+    | VLAN -> vlan_demux st vlan_ethertype_demux (* ugly *)
+    | _ -> data_demux
+
 let ethertype_demux st eh =
   let open Ethernet in
   match int_to_ethertype eh.ethertype with
   | None -> data_demux
   | Some t -> match t with
     | IP4 -> ip_demux st ipproto_demux
+    | VLAN -> vlan_demux st vlan_ethertype_demux (* ugly *)
     | _ -> data_demux

@@ -23,6 +23,7 @@ cenum ethertype {
   IP4 = 0x0800;
   ARP = 0x0806;
   IPX = 0x8137;
+  VLAN = 0x8100;
   IP6 = 0x86dd
 } as uint16_t
 
@@ -63,3 +64,34 @@ let to_string h =
   in
   sprintf "src:%s dst:%s type:%s"
     (mac_to_string h.src) (mac_to_string h.dst) ethertype
+
+module Vlan = struct
+  cstruct vlan {
+      uint16_t tci;
+      uint16_t ethertype
+  } as big_endian
+
+  type h = {
+    tci: uint16;
+    ethertype: uint16;
+  }
+
+  let h buf = {
+    tci = get_vlan_tci buf;
+    ethertype = get_vlan_ethertype buf;
+  }
+
+  let to_str h =
+    let ethertype = match int_to_ethertype h.ethertype with
+      | None -> sprintf "#%d" h.ethertype
+      | Some e -> ethertype_to_string e
+    in
+    sprintf "%04x,%s" h.tci ethertype
+
+  let to_string h =
+    let ethertype = match int_to_ethertype h.ethertype with
+      | None -> sprintf "#%d" h.ethertype
+      | Some e -> ethertype_to_string e
+    in
+    sprintf "tci:%04x ethertype:%s" h.tci ethertype
+end
