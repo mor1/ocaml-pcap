@@ -19,3 +19,4 @@ type buf = Cstruct.t
 
 val iter: (buf -> int option) -> (buf -> 'a) -> buf -> 'a t
 val fold: ('b -> 'a -> 'b) -> 'a t -> 'b -> 'b
+val map: ('a  -> 'b) -> 'a t -> 'b t

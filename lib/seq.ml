@@ -17,7 +17,6 @@
 type 'a t = unit -> 'a option
 type buf = Cstruct.t
 
-
 let iter lenfn pfn t =
   let body = ref (Some t) in
   let i = ref 0 in
@@ -45,3 +44,8 @@ let iter lenfn pfn t =
 let rec fold f next acc = match next () with
   | None -> acc
   | Some v -> fold f next (f acc v)
+
+let map f iter =
+  fun () -> match iter () with
+    | None -> None
+    | Some v -> Some (f v)
