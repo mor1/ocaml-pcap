@@ -19,4 +19,8 @@ type metadata = {
   filesize: int;
 }
 
-val of_filename: string -> metadata * (Pcap.fh * Pcap.t Seq.t)
+type t = metadata * Ocap.t Seq.t
+
+val of_filename: string -> t
+val pcap_of_filename: string -> metadata * Pcap.fh * Pcap.t Seq.t
+val erf_of_filename: string -> metadata * Erf.t Seq.t

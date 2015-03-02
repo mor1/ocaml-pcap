@@ -178,8 +178,8 @@ val fh_to_string: fh -> string
 type h = {
   secs: int32;
   usecs: int32;
-  caplen: int32;
-  len: int32;
+  caplen: int;
+  len: int;
 }
 
 (** Compact [h] pretty-printer. *)
@@ -194,6 +194,8 @@ type t = PCAP of h * Ps.Packet.t * Cstruct.t
 
 val iter:
   Cstruct.t -> (Cstruct.t -> Ps.Packet.t) -> (fh * t Cstruct.iter) option
+
+val to_pkt: t -> Ocap.t
 
 
 (*

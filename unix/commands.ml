@@ -34,19 +34,18 @@ let print copts filenames =
 
   let open Printf in
   let files = List.map Trace.of_filename filenames in
-  List.iter (fun (file, (fileheader,packets)) ->
-      printf "\
-        ### START: filename:%s size:%d\n\
-        %s\n%!" file.Trace.filename file.Trace.filesize (Pcap.fh_to_str fileheader);
+  List.iter (fun (file, packets) ->
+      printf "### START: filename:%s size:%d\n%!"
+        file.Trace.filename file.Trace.filesize;
       let npackets =
         Cstruct.fold (fun acc pkt ->
-            let Pcap.PCAP(h, p, _) = pkt in
-            let pcap_to_str, pkt_to_str =
+            let Ocap.PKT(h, p, _) = pkt in
+            let ocap_to_str, pkt_to_str =
               match copts.verbosity with
-              | Quiet | Normal -> Pcap.to_str, Ps.Packet.to_str
-              | Verbose -> Pcap.to_string, Ps.Packet.to_string
+              | Quiet | Normal -> Ocap.to_str, Ps.Packet.to_str
+              | Verbose -> Ocap.to_string, Ps.Packet.to_string
             in
-            printf "%d: PCAP(%s)%s\n%!" acc (pcap_to_str h) (pkt_to_str p);
+            printf "%d: PKT(%s)%s\n%!" acc (ocap_to_str h) (pkt_to_str p);
             acc+1
           ) packets 0
       in
@@ -82,7 +81,7 @@ let reform copts filenames ofilename =
   let ofd = creat ofilename in
   let ifds = filenames |> List.map (fun fn ->
       (* assumes all inputs are valid pcap trace files *)
-      let (_, (_, ifd)) = Trace.of_filename fn in
+      let (_, ifd) = Trace.of_filename fn in
       ifd
     )
   in
@@ -90,14 +89,11 @@ let reform copts filenames ofilename =
   let streams = List.map (fun ifd -> (ifd (), ifd)) ifds in
 
   let process streams =
-    let open Pcap in
+    let open Ocap in
     let cmp (lp,_) (rp,_) = match lp, rp with
       | None, _ -> -1
       | _, None -> 1
-      | Some (PCAP (lh, _, _)), Some (PCAP (rh, _, _)) ->
-        Int32.to_int
-          (if lh.secs = rh.secs then Int32.sub lh.usecs rh.usecs else
-             Int32.sub lh.secs rh.secs)
+      | Some (PKT (lh, _, _)), Some (PKT (rh, _, _)) -> compare lh rh
     in
     let rec process_ ss =
       match List.sort cmp ss with
@@ -105,13 +101,15 @@ let reform copts filenames ofilename =
       | (p,s) :: tl ->
         let rest = match p with
           | None -> tl
-          | Some PCAP(h,b,bs) ->
+          | Some PKT(h,b,bs) ->
             let buf = Cstruct.create Pcap.sizeof_pcap_packet in
             let open Pcap in (* LE platform assumed above *)
-            LE.set_pcap_packet_ts_sec buf h.secs;
-            LE.set_pcap_packet_ts_usec buf h.usecs;
-            LE.set_pcap_packet_caplen buf h.caplen;
-            LE.set_pcap_packet_len buf h.len;
+            let secs = Int64.(div h.usecs 1_000_000_L |> to_int32) in
+            let usecs = Int64.(rem h.usecs 1_000_000_L |> to_int32) in
+            LE.set_pcap_packet_ts_sec buf secs;
+            LE.set_pcap_packet_ts_usec buf usecs;
+            LE.set_pcap_packet_caplen buf (Int32.of_int h.caplen);
+            LE.set_pcap_packet_len buf (Int32.of_int h.len);
             let n = write ofd buf in assert (n=16);
             let n = write ofd bs in assert (n=Cstruct.len bs);
             (s (), s) :: tl
@@ -132,14 +130,14 @@ type statistics = {
   mutable packets: int32;
   mutable bytes: int32;
   mutable capbytes: int32;
-  mutable first: time_t;
-  mutable last: time_t;
+  mutable first: int64;
+  mutable last: int64;
 }
 let statistics_to_string s =
   Printf.sprintf
     "npackets:%ld bytes:%ld capbytes:%ld first:%s last:%s"
     s.packets s.bytes s.capbytes
-    (time_t_to_string s.first) (time_t_to_string s.last)
+    (Ocap.usecs_to_string s.first) (Ocap.usecs_to_string s.last)
 
 let statistics copts filenames =
   let pr, vpr = pr copts, vpr copts in
@@ -147,24 +145,23 @@ let statistics copts filenames =
     (verbosity_to_string copts.verbosity) copts.debug copts.no_progress;
 
   let files = List.map Trace.of_filename filenames in
-  List.iter (fun (file, (fileheader, packets)) ->
+  List.iter (fun (file, packets) ->
       let zero = { packets=0l;
                    bytes=0l;
                    capbytes=0l;
-                   first={secs=0l;usecs=0l};
-                   last={secs=0l;usecs=0l}
+                   first=0L;
+                   last=0L
                  }
       in
       let stats =
         Cstruct.fold (fun s pkt ->
-            let open Pcap in
-            let PCAP(h,_,_) = pkt in
+            let open Ocap in
+            let PKT(h,_,_) = pkt in
             s.packets <- Int32.add s.packets 1l;
-            s.bytes <- Int32.add s.bytes h.len;
-            s.capbytes <- Int32.add s.capbytes h.caplen;
-            if s.first = { secs=0l; usecs=0l } then
-              s.first <- { secs=h.secs; usecs=h.usecs };
-            s.last <- { secs=h.secs; usecs=h.usecs };
+            s.bytes <- Int32.(add s.bytes (of_int h.len));
+            s.capbytes <- Int32.(add s.capbytes (of_int h.caplen));
+            if s.first = 0L then s.first <- h.usecs;
+            s.last <- h.usecs;
             s
           ) packets zero
       in

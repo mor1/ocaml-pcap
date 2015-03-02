@@ -162,15 +162,15 @@ let fh_to_string fh =
 type h = {
   secs: int32;
   usecs: int32;
-  caplen: int32;
-  len: int32;
+  caplen: int;
+  len: int;
 }
 
 let to_str h =
-  sprintf "%lu.%06lu %lu[%lu]" h.secs h.usecs h.caplen h.len
+  sprintf "%lu.%06lu %u[%u]" h.secs h.usecs h.caplen h.len
 
 let to_string h =
-  sprintf "secs:%lu usecs:%lu caplen:%lu len:%lu" h.secs h.usecs h.caplen h.len
+  sprintf "secs:%lu usecs:%lu caplen:%u len:%u" h.secs h.usecs h.caplen h.len
 
 type t = PCAP of h * Ps.Packet.t * Cstruct.t
 
@@ -190,8 +190,8 @@ let iter buf demuxf =
     let h buf =
       { secs = H.get_pcap_packet_ts_sec buf;
         usecs = H.get_pcap_packet_ts_usec buf;
-        caplen = H.get_pcap_packet_caplen buf;
-        len = H.get_pcap_packet_len buf
+        caplen = H.get_pcap_packet_caplen buf |> Int32.to_int;
+        len = H.get_pcap_packet_len buf |> Int32.to_int
       }
     in
 
@@ -224,3 +224,13 @@ let iter buf demuxf =
             )
             buf
     )
+
+let to_pkt = function
+  | PCAP ({ secs; usecs; caplen; len}, p, buf) ->
+    let usecs =
+      let open Int64 in
+      let secs, usecs = of_int32 secs, of_int32 usecs in
+      add usecs (mul secs 1_000_000L)
+    in
+    let open Ocap in
+    PKT ({ usecs; caplen; len }, p, buf)
