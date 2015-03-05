@@ -92,12 +92,12 @@ let h_to_string h =
     (Ip4.ip_to_string h.ciaddr) (Ip4.ip_to_string h.yiaddr)
     (Ip4.ip_to_string h.siaddr) (Ip4.ip_to_string h.giaddr)
     (Ethernet.mac_to_string h.chaddr)
-    (Buf.to_string " " h.sname)
-    (Buf.to_string " " h.file)
+    (Buf.to_string ~sep:" " h.sname)
+    (Buf.to_string ~sep:" " h.file)
 
 type p = UNKNOWN of Cstruct.t
 type t = h * p
 
 let to_str (h, UNKNOWN p) = sprintf "DHCP(%s)" (h_to_str h)
 let to_string (h, UNKNOWN p) =
-  sprintf "DHCP(%s)|%s" (h_to_string h) (Buf.to_string "\n\t" p)
+  sprintf "DHCP(%s)|%s" (h_to_string h) (Buf.to_string p)

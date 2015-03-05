@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-let to_string sep buf =
+let to_string ?(sep="\n\t") buf =
   let open Printf in
   let line_len = 16 in
 

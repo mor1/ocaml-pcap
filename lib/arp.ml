@@ -88,4 +88,4 @@ type t = h * p
 
 let to_str (h, UNKNOWN p) = sprintf "ARP(%s)" (h_to_str h)
 let to_string (h, UNKNOWN p) =
-  sprintf "ARP(%s)|%s" (h_to_string h) (Buf.to_string "\n\t" p)
+  sprintf "ARP(%s)|%s" (h_to_string h) (Buf.to_string p)
