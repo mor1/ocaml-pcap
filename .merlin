@@ -1,4 +1,4 @@
-PKG lwt cstruct cstruct.syntax ipaddr pcap-format cmdliner
+PKG lwt cstruct cstruct.syntax ipaddr cmdliner dns rresult pcap-format
 S ./lib
 S ./mirage
 S ./unix

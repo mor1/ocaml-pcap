@@ -1,8 +1,8 @@
 # OASIS_START
-# DO NOT EDIT (digest: a151ba9041edc061215e85b1d985ce82)
+# DO NOT EDIT (digest: 597d3cf970d8a4532068d0fdc4d45ae1)
 version = "0.4"
 description = "Packet capture tools"
-requires = "cstruct cstruct.syntax ipaddr"
+requires = "cstruct cstruct.syntax ipaddr dns io-page io-page.unix rresult"
 archive(byte) = "pcap-format.cma"
 archive(byte, plugin) = "pcap-format.cma"
 archive(native) = "pcap-format.cmxa"
@@ -11,7 +11,7 @@ exists_if = "pcap-format.cma"
 package "unix" (
  version = "0.4"
  description = "Packet capture tools"
- requires = "cstruct pcap-format"
+ requires = "cstruct pcap-format rresult"
  archive(byte) = "pcap-format.unix.cma"
  archive(byte, plugin) = "pcap-format.unix.cma"
  archive(native) = "pcap-format.unix.cmxa"

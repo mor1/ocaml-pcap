@@ -35,4 +35,4 @@ let to_str h =
 let to_string h =
   sprintf "time:%s caplen:%u len:%u" (usecs_to_string h.usecs) h.caplen h.len
 
-type t = PKT of h * Packet.t * Cstruct.t
+type t = [ `PKT of h * Packet.t * Cstruct.t ]

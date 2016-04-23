@@ -20,6 +20,7 @@
     cleaner to break them out. *)
 
 open Packet
+module DP = Dns.Packet
 
 (** stop_demuxf: buf -> Packet.t *)
 
@@ -27,48 +28,55 @@ let drop_demux _ = DROP
 
 let data_demux buf = DATA buf
 
-(** demuxf: 'st -> 'proto_demuxf -> buf -> Packet.t *)
-
 let udp4_demux st port_demux buf =
   let open Udp4 in
-  let uh = h buf in
-  let buf = Cstruct.shift buf sizeof_udp4 in
+  trap_exn h buf >>= fun uh ->
+  trap_exn (shift sizeof_udp4) buf >>= fun buf ->
   UDP4(uh, (port_demux st uh) buf)
 
 let tcp4_demux st port_demux buf =
   let open Tcp4 in
-  let th = h buf in
-  let buf = Cstruct.shift buf sizeof_tcp4 in
+  trap_exn h buf >>= fun th ->
+  trap_exn (shift sizeof_tcp4) buf >>= fun buf ->
   TCP4(th, (port_demux st th) buf)
 
 let ip_demux st ipproto_demux buf =
   let open Ip4 in
-  let ih = h buf in
-  let buf = Cstruct.shift buf sizeof_ip4 in
+  trap_exn h buf >>= fun ih ->
+  trap_exn (shift sizeof_ip4) buf >>= fun buf ->
   IP4(ih, (ipproto_demux st ih) buf)
 
 let eth_demux st ethertype_demux buf =
   let open Ethernet in
-  let eh = h buf in
-  let buf = Cstruct.shift buf sizeof_ethernet in
+  trap_exn h buf >>= fun eh ->
+  trap_exn (shift sizeof_ethernet) buf >>= fun buf ->
   ETH(eh, (ethertype_demux st eh) buf)
 
 let vlan_demux st ethertype_demux buf =
   let open Ethernet.Vlan in
-  let vh = h buf in
-  let buf = Cstruct.shift buf sizeof_vlan in
+  trap_exn h buf >>= fun vh ->
+  trap_exn (shift sizeof_vlan) buf >>= fun buf ->
   VLAN(vh, (ethertype_demux st vh) buf)
 
 (** proto_demuxf: 'st -> h -> demuxf *)
 
+(* XXX wrap these so that the `fun buf -> ...` catches any exn from the read and *)
+(* converts to an ERR buf *)
 let udp4_port_demux st uh =
   let open Ip4 in
   match int_to_port uh.Udp4.dstpt with
   | None -> data_demux
   | Some p -> match p with
-    | BOOTPS | BOOTPC
-      -> (fun buf ->
-          Dhcp4.(DHCP(h buf, UNKNOWN(Cstruct.shift buf sizeof_dhcp4))))
+    | BOOTPS | BOOTPC -> (fun buf ->
+        let open Dhcp4 in
+        trap_exn h buf >>= fun dh ->
+        trap_exn (shift sizeof_dhcp4) buf >>= fun payload ->
+        DHCP(dh, UNKNOWN(payload))
+      )
+    | DNS -> (fun buf ->
+        trap_exn Dnscap.parse buf >>= fun dns ->
+        DNS(dns)
+      )
     | _ -> data_demux
 
 let tcp4_port_demux st th =

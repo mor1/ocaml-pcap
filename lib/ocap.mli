@@ -27,4 +27,4 @@ type h = {
 val to_str: h -> string
 val to_string: h -> string
 
-type t = PKT of h * Packet.t * Cstruct.t
+type t = [ `PKT of h * Packet.t * Cstruct.t ]

@@ -14,38 +14,33 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-type 'a t = unit -> 'a option
+open Rresult_infix
+
+type 'a t = unit -> ('a, string) result
 type buf = Cstruct.t
 
 let iter lenfn pfn t =
   let body = ref (Some t) in
-  let i = ref 0 in
   fun () ->
     match !body with
     | Some buf when Cstruct.len buf = 0 ->
       body := None;
-      None
-    | Some buf -> begin
-        match lenfn buf with
-        | None ->
-          body := None;
-          None
-        | Some plen ->
-          incr i;
-          try
-            let p, rest = Cstruct.split buf plen in
-            body := Some rest;
-            Some (pfn p)
-          with
-          | Invalid_argument _ -> None
-      end
-    | None -> None
+      R.ok `Eof
+
+    | Some buf ->
+      Demux.trap_exn lenfn buf >>= fun len ->
+      Demux.(trap_exn (split len) buf) >>= fun (p, rest) ->
+      body := Some rest;
+      Demux.trap_exn pfn p
+
+    | None -> R.ok `Eof
 
 let rec fold f next acc = match next () with
-  | None -> acc
-  | Some v -> fold f next (f acc v)
+  | Ok `Eof -> R.ok acc
+  | Ok v -> fold f next (f acc v)
+  | Error (buf, bt) -> Error (acc, buf, bt)
 
 let map f iter =
   fun () -> match iter () with
-    | None -> None
-    | Some v -> Some (f v)
+    | Ok v -> R.ok (f v)
+    | e -> e

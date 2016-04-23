@@ -30,12 +30,12 @@ type h = {
   xsum: int
 }
 
-let h buf =
-  { srcpt = get_udp4_srcpt buf;
-    dstpt = get_udp4_dstpt buf;
-    len = get_udp4_len buf;
-    xsum = get_udp4_xsum buf;
-  }
+let h buf = {
+  srcpt = get_udp4_srcpt buf;
+  dstpt = get_udp4_dstpt buf;
+  len = get_udp4_len buf;
+  xsum = get_udp4_xsum buf;
+}
 
 let to_str h = sprintf "%d,%d" h.srcpt h.dstpt
 

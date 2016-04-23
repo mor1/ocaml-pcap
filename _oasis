@@ -21,10 +21,13 @@ Library "pcap-format"
   Install: true
   FindlibName: pcap-format
   Modules:
-    Ocap, Seq, Buf, Packet, Demux,
-    Pcap, Erf,
-    Ethernet, Arp, Icmp, Ip4, Udp4, Tcp4, Dhcp4
-  BuildDepends: cstruct ( >= 0.5.0 ), cstruct.syntax, ipaddr
+    Seq, Buf, 
+    Ethernet, Arp, Icmp, Ip4, Udp4, Tcp4, Dhcp4, Dnscap,
+        Packet, Demux, Ocap, Pcap, Erf
+
+  BuildDepends:
+    cstruct ( >= 0.5.0 ), cstruct.syntax, ipaddr, dns, io-page, io-page.unix,
+    rresult
 
 Document "pcap-format"
   Title: PCAP-format docs
@@ -34,7 +37,7 @@ Document "pcap-format"
   XOCamlbuildModules:
     Ocap, Seq, Buf, Packet, Demux,
     Pcap, Erf,
-    Ethernet, Arp, Icmp, Ip4, Udp4, Tcp4, Dhcp4
+    Ethernet, Arp, Icmp, Ip4, Udp4, Tcp4, Dhcp4, Dnscap
 
 Executable test
   Path: lib_test
@@ -50,7 +53,7 @@ Library "pcap-format.unix"
   Path: unix
   Install: true
   Modules: Trace
-  BuildDepends: cstruct ( >= 0.5.0 ), pcap-format
+  BuildDepends: cstruct ( >= 0.5.0 ), pcap-format, rresult
 
 Executable "ocap"
   CompiledObject: best

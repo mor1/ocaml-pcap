@@ -40,9 +40,10 @@ type t =
 
   | DHCP of Dhcp4.t
   | ARP of Arp.t
+  | DNS of Dnscap.t
 
   | DATA of Cstruct.t
-  | ERROR of Cstruct.t
+  | ERROR of Cstruct.t * Printexc.raw_backtrace
   | DROP
 
 (** Compact pretty printer for {! Packet.t}. *)

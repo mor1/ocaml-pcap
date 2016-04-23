@@ -39,11 +39,11 @@ type h = {
   ethertype: uint16;
 }
 
-let h buf =
-  { dst = get_ethernet_dst buf;
-    src = get_ethernet_src buf;
-    ethertype = get_ethernet_ethertype buf;
-  }
+let h buf = {
+  dst = get_ethernet_dst buf;
+  src = get_ethernet_src buf;
+  ethertype = get_ethernet_ethertype buf;
+}
 
 let mac_to_string mac =
   let i n = get_uint8 mac n in

@@ -1,12 +1,7 @@
 # OASIS_START
-# DO NOT EDIT (digest: 9e7111c1705405b6aac220a29f06803b)
-Ocap
+# DO NOT EDIT (digest: 9f48c93d6b8bb4877f2da881c5697c80)
 Seq
 Buf
-Packet
-Demux
-Pcap
-Erf
 Ethernet
 Arp
 Icmp
@@ -14,4 +9,10 @@ Ip4
 Udp4
 Tcp4
 Dhcp4
+Dnscap
+Packet
+Demux
+Ocap
+Pcap
+Erf
 # OASIS_STOP

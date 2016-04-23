@@ -92,7 +92,7 @@ let h_to_string h =
   sprintf "time:%s type:%02x flags:%08x rlen:%u lctr:%u wlen:%u"
     (Ocap.usecs_to_string h.usecs) h.flags h.rlen h.lctr h.wlen
 
-type t = ERF of h * Packet.t * Cstruct.t
+type t = [ `ERF of h * Packet.t * Cstruct.t ]
 
 let iter buf demuxf =
   let h buf =
@@ -106,23 +106,21 @@ let iter buf demuxf =
     }
   in
 
-  Some (
-    (),
-    Seq.iter
-      (fun buf ->
-         let buf = Cstruct.shift buf sizeof_erf_ts in
-         Some (get_erf_packet_rlen buf)
-      )
-      (fun buf ->
-         let hdr = h buf in
-         let buf = Cstruct.shift buf (sizeof_erf_ts + sizeof_erf_packet) in
-         let payload = demuxf buf in
-         ERF(hdr, payload, buf)
-      )
-      buf
-  )
+  Seq.iter
+    (fun buf ->
+       let buf = Cstruct.shift buf sizeof_erf_ts in
+       get_erf_packet_rlen buf
+    )
+    (fun buf ->
+       let hdr = h buf in
+       let buf = Cstruct.shift buf (sizeof_erf_ts + sizeof_erf_packet) in
+       let payload = demuxf buf in
+       `ERF(hdr, payload, buf)
+    )
+    buf
 
 let to_pkt = function
-  | ERF ({ usecs; flags; rlen; lctr; wlen }, p, buf) ->
+  | `ERF ({ usecs; flags; rlen; lctr; wlen }, p, buf) ->
     let open Ocap in
-    PKT ({usecs; caplen=rlen; len=wlen}, p, buf)
+    `PKT ({usecs; caplen=rlen; len=wlen}, p, buf)
+  | v -> v

@@ -64,7 +64,7 @@ let open_device blkif : fd =
             remaining := Cstruct.shift !remaining written;
             return ()
           done in
-        Lwt_list.iter_s write frags  
+        Lwt_list.iter_s write frags
     done in
   m
 

@@ -86,20 +86,20 @@ type h = {
   dst: int32;
 }
 
-let h buf =
-  { ver = get_ip4_ver buf;
-    hlen = get_ip4_hlen buf;
-    tos = get_ip4_tos buf;
-    len = get_ip4_len buf;
-    id = get_ip4_id buf;
-    flags = get_ip4_flags buf;
-    ttl = get_ip4_ttl buf;
-    offset = get_ip4_offset buf;
-    proto = get_ip4_proto buf;
-    xsum = get_ip4_xsum buf;
-    src = get_ip4_src buf;
-    dst = get_ip4_dst buf;
-  }
+let h buf = {
+  ver = get_ip4_ver buf;
+  hlen = get_ip4_hlen buf;
+  tos = get_ip4_tos buf;
+  len = get_ip4_len buf;
+  id = get_ip4_id buf;
+  flags = get_ip4_flags buf;
+  ttl = get_ip4_ttl buf;
+  offset = get_ip4_offset buf;
+  proto = get_ip4_proto buf;
+  xsum = get_ip4_xsum buf;
+  src = get_ip4_src buf;
+  dst = get_ip4_dst buf;
+}
 
 let flags_to_string f =
   sprintf "%s%s"

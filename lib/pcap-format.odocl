@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 9e7111c1705405b6aac220a29f06803b)
+# DO NOT EDIT (digest: 3ea4ecd22543dcd0bad5fef4247b08e2)
 Ocap
 Seq
 Buf
@@ -14,4 +14,5 @@ Ip4
 Udp4
 Tcp4
 Dhcp4
+Dnscap
 # OASIS_STOP

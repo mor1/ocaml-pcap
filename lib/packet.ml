@@ -16,6 +16,12 @@
 
 open Printf
 
+(* XXX define
+
+ type pkt = PKT of h * t * bytes
+ type raw = RAW of h * bytes
+*)
+
 type t =
   | ETH of Ethernet.h * t
   | VLAN of Ethernet.Vlan.h * t
@@ -26,10 +32,33 @@ type t =
 
   | DHCP of Dhcp4.t
   | ARP of Arp.t
+  | DNS of Dnscap.t
 
   | DATA of Cstruct.t
-  | ERROR of Cstruct.t
+  | ERROR of Cstruct.t * Printexc.raw_backtrace
   | DROP
+
+
+(** demuxf: 'st -> 'proto_demuxf -> buf -> Packet.t *)
+
+let shift n buf = Cstruct.shift buf n
+let split n buf = Cstruct.split buf n
+
+let trap_exn f v =
+  let open Rresult in
+  try Ok (f v) with
+  | e ->
+      let bt = Printexc.get_raw_backtrace () in
+      Error (v, bt)
+
+let ( >>= ) r f =
+  let open Rresult in
+  match r with
+  | Ok v -> f v
+  | Error (buf, bt) -> ERROR(buf, bt)
+
+
+let bt_to_string = Printexc.raw_backtrace_to_string
 
 let to_str pkt =
   let rec aux pkt str =
@@ -48,9 +77,11 @@ let to_str pkt =
 
     | DHCP p -> sprintf "%s|%s" str (Dhcp4.to_str p)
     | ARP p -> sprintf "%s|%s" str (Arp.to_str p)
+    | DNS p -> sprintf "%s|%s" str (Dnscap.to_str p)
 
     | DATA bs -> sprintf "%s|DATA(.)" str
-    | ERROR bs -> sprintf "%s|ERR(%s)" str (Buf.to_string "\n\t" bs)
+    | ERROR (bs, bt) ->
+      sprintf "%s|ERR(%s,%s)" str (Buf.to_string bs) (bt_to_string bt)
     | DROP -> sprintf "%s|." str
   in
   aux pkt ""
@@ -72,9 +103,11 @@ let to_string pkt =
 
     | DHCP p -> sprintf "%s|%s" str (Dhcp4.to_string p)
     | ARP p -> sprintf "%s|%s" str (Arp.to_string p)
+    | DNS p -> sprintf "%s|%s" str (Dnscap.to_string p)
 
-    | DATA bs -> sprintf "%s|DATA(%s)" str (Buf.to_string "\n\t" bs)
-    | ERROR bs -> sprintf "%s|ERR(%s)" str (Buf.to_string "\n\t" bs)
+    | DATA bs -> sprintf "%s|DATA(%s)" str (Buf.to_string bs)
+    | ERROR (bs, bt) ->
+      sprintf "%s|ERR(%s,%s)" str (Buf.to_string bs) (bt_to_string bt)
     | DROP -> sprintf "%s|." str
   in
   aux pkt ""

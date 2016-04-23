@@ -17,6 +17,7 @@
  *)
 
 open Printf
+open Rresult_infix
 
 let major_version = 2
 
@@ -63,21 +64,21 @@ module LE = struct
   let endian = Little
 
   cstruct pcap_header {
-    uint32_t magic_number;   (* magic number *)
-    uint16_t version_major;  (* major version number *)
-    uint16_t version_minor;  (* minor version number *)
-    uint32_t thiszone;       (* GMT to local correction *)
-    uint32_t sigfigs;        (* accuracy of timestamps *)
-    uint32_t snaplen;        (* max length of captured packets, in octets *)
-    uint32_t network         (* data link type *)
-  } as little_endian
+      uint32_t magic_number;   (* magic number *)
+      uint16_t version_major;  (* major version number *)
+      uint16_t version_minor;  (* minor version number *)
+      uint32_t thiszone;       (* GMT to local correction *)
+      uint32_t sigfigs;        (* accuracy of timestamps *)
+      uint32_t snaplen;        (* max length of captured packets, in octets *)
+      uint32_t network         (* data link type *)
+    } as little_endian
 
   cstruct pcap_packet {
-    uint32_t ts_sec;         (* timestamp seconds *)
-    uint32_t ts_usec;        (* timestamp microseconds *)
-    uint32_t caplen;         (* number of octets of packet saved in file *)
-    uint32_t len             (* actual length of packet *)
-  } as little_endian
+      uint32_t ts_sec;         (* timestamp seconds *)
+      uint32_t ts_usec;        (* timestamp microseconds *)
+      uint32_t caplen;         (* number of octets of packet saved in file *)
+      uint32_t len             (* actual length of packet *)
+    } as little_endian
 
 end
 
@@ -85,21 +86,21 @@ module BE = struct
   let endian = Big
 
   cstruct pcap_header {
-    uint32_t magic_number;   (* magic number *)
-    uint16_t version_major;  (* major version number *)
-    uint16_t version_minor;  (* minor version number *)
-    uint32_t thiszone;       (* GMT to local correction *)
-    uint32_t sigfigs;        (* accuracy of timestamps *)
-    uint32_t snaplen;        (* max length of captured packets, in octets *)
-    uint32_t network         (* data link type *)
-  } as big_endian
+      uint32_t magic_number;   (* magic number *)
+      uint16_t version_major;  (* major version number *)
+      uint16_t version_minor;  (* minor version number *)
+      uint32_t thiszone;       (* GMT to local correction *)
+      uint32_t sigfigs;        (* accuracy of timestamps *)
+      uint32_t snaplen;        (* max length of captured packets, in octets *)
+      uint32_t network         (* data link type *)
+    } as big_endian
 
   cstruct pcap_packet {
-    uint32_t ts_sec;         (* timestamp seconds *)
-    uint32_t ts_usec;        (* timestamp microseconds *)
-    uint32_t caplen;         (* number of octets of packet saved in file *)
-    uint32_t len             (* actual length of packet *)
-  } as big_endian
+      uint32_t ts_sec;         (* timestamp seconds *)
+      uint32_t ts_usec;        (* timestamp microseconds *)
+      uint32_t caplen;         (* number of octets of packet saved in file *)
+      uint32_t len             (* actual length of packet *)
+    } as big_endian
 end
 
 let sizeof_pcap_header = BE.sizeof_pcap_header (* = LE.sizeof_pcap_header *)
@@ -172,7 +173,19 @@ let to_str h =
 let to_string h =
   sprintf "secs:%lu usecs:%lu caplen:%u len:%u" h.secs h.usecs h.caplen h.len
 
-type t = PCAP of h * Packet.t * Cstruct.t
+type t = [ `PCAP of h * Packet.t * Cstruct.t ]
+
+(* XXX define
+
+  type t = PCAP of h * Packet.t * Cstruct.t
+
+and
+
+  val to_pkt: t -> Packet.pkt
+  val of_pkt: Packet.pkt -> t
+  val of_raw: Packet.raw -> t
+
+*)
 
 let iter buf demuxf =
   let pcap_hdr =
@@ -183,55 +196,51 @@ let iter buf demuxf =
     else None
   in
   match pcap_hdr with
-  | None -> None
+  | None ->
+    invalid_arg (Printf.sprintf "invalid PCAP magic number: %08lx / %08lx"
+                   (LE.get_pcap_header_magic_number buf)
+                   (BE.get_pcap_header_magic_number buf)
+                )
   | Some h ->
     let module H = (val h : HDR) in
-
-    let h buf =
-      { secs = H.get_pcap_packet_ts_sec buf;
-        usecs = H.get_pcap_packet_ts_usec buf;
-        caplen = H.get_pcap_packet_caplen buf |> Int32.to_int;
-        len = H.get_pcap_packet_len buf |> Int32.to_int
-      }
-    in
-
-    let fh =
-      { magic_number = H.get_pcap_header_magic_number buf;
-        endian = H.endian;
-        version_major = H.get_pcap_header_version_major buf;
-        version_minor = H.get_pcap_header_version_minor buf;
-        timezone = H.get_pcap_header_thiszone buf;
-        sigfigs = H.get_pcap_header_sigfigs buf;
-        snaplen = H.get_pcap_header_snaplen buf;
-        network = H.get_pcap_header_network buf;
-      }
-    in
+    let fh = {
+      magic_number = H.get_pcap_header_magic_number buf;
+      endian = H.endian;
+      version_major = H.get_pcap_header_version_major buf;
+      version_minor = H.get_pcap_header_version_minor buf;
+      timezone = H.get_pcap_header_thiszone buf;
+      sigfigs = H.get_pcap_header_sigfigs buf;
+      snaplen = H.get_pcap_header_snaplen buf;
+      network = H.get_pcap_header_network buf;
+    } in
     let _, buf = Cstruct.split buf sizeof_pcap_header in
 
-    Some (
-      fh, Seq.iter
-            (fun buf ->
-               let offset_delta =
-                 sizeof_pcap_packet
-                 + (Int32.to_int (H.get_pcap_packet_caplen buf))
-               in
-               Some offset_delta
-            )
-            (fun buf ->
-               let hdr = h buf in
-               let buf = Cstruct.shift buf sizeof_pcap_packet in
-               let payload = demuxf buf in
-               PCAP(hdr, payload, buf)
-            )
-            buf
-    )
+    let h buf = {
+      secs = H.get_pcap_packet_ts_sec buf;
+      usecs = H.get_pcap_packet_ts_usec buf;
+      caplen = H.get_pcap_packet_caplen buf |> Int32.to_int;
+      len = H.get_pcap_packet_len buf |> Int32.to_int
+    } in
+
+    fh, Seq.iter
+          (fun buf ->
+             sizeof_pcap_packet
+             + Int32.to_int (H.get_pcap_packet_caplen buf)
+          )
+          (fun buf ->
+             let hdr = h buf in
+             let buf = Cstruct.shift buf sizeof_pcap_packet in
+             `PCAP(hdr, demuxf buf, buf)
+          )
+          buf
 
 let to_pkt = function
-  | PCAP ({ secs; usecs; caplen; len}, p, buf) ->
+  | `PCAP ({ secs; usecs; caplen; len}, p, buf) ->
     let usecs =
       let open Int64 in
       let secs, usecs = of_int32 secs, of_int32 usecs in
       add usecs (mul secs 1_000_000L)
     in
     let open Ocap in
-    PKT ({ usecs; caplen; len }, p, buf)
+    `PKT ({ usecs; caplen; len }, p, buf)
+  | v -> v
